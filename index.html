@@ -221,6 +221,38 @@ html, body {
   opacity: 0;
 }
 
+/* =========================
+   INTROS CENTRADAS
+   ========================= */
+
+.intro-texto {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 420px;
+
+  text-align: center;
+  color: white;
+  font-family: 'Gruppo', sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.6;
+
+  background: rgba(0,0,0,0.6);
+  padding: 1.5rem;
+  border-radius: 18px;
+
+  z-index: 10000;
+
+  /* CLAVE PARA NO ROMPER INTERACCIÓN */
+  display: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+
+  pointer-events: none;
+}
+
 
 </style>
 </head>
@@ -248,9 +280,88 @@ html, body {
   <div class="caja-texto" id="caja-texto-1">
     <p id="texto-animado"></p>
   </div>
-  <div class="hint">Toca un símbolo</div>
+  <div class="hint oculto">Toca un símbolo</div>
+
+
+<!-- ===== INTROS ===== -->
+<div class="intro-texto" id="intro">
+  <p id="intro-animado"></p>
+</div>
+<!-- ===== FIN INTROS ===== -->
+
 
 <script>
+
+/* =========================
+   INTROS (2 PASOS)
+   ========================= */
+
+const textosIntro = [
+  `Este es el primer texto introductorio.
+Introduce el significado general de la ilustración.`,
+
+  `Este es el segundo texto introductorio.
+Ahora puedes tocar los símbolos para explorarlos.`
+];
+
+const VELOCIDAD_INTRO = 40;
+const PAUSA_INTRO = 900;
+
+function escribirIntro(texto, callback) {
+  const el = document.getElementById('intro-animado');
+  el.textContent = '';
+  let i = 0;
+
+  function escribir() {
+    if (i < texto.length) {
+      el.textContent += texto[i];
+      i++;
+      setTimeout(escribir, VELOCIDAD_INTRO);
+    } else {
+      callback();
+    }
+  }
+
+  escribir();
+}
+
+function mostrarIntro() {
+  const intro = document.getElementById('intro');
+  intro.style.display = 'block';
+  requestAnimationFrame(() => {
+    intro.style.opacity = '1';
+  });
+}
+
+function ocultarIntro(callback) {
+  const intro = document.getElementById('intro');
+  intro.style.opacity = '0';
+  setTimeout(() => {
+    intro.style.display = 'none';
+    if (callback) callback();
+  }, 1000);
+}
+
+function ejecutarIntros(indice = 0) {
+  if (indice >= textosIntro.length) {
+    // ACTIVAR HOTSPOTS Y HINT AL FINAL
+    document.querySelector('.hint')?.classList.remove('oculto');
+    return;
+  }
+
+  mostrarIntro();
+
+  escribirIntro(textosIntro[indice], () => {
+    setTimeout(() => {
+      ocultarIntro(() => {
+        setTimeout(() => {
+          ejecutarIntros(indice + 1);
+        }, PAUSA_INTRO);
+      });
+    }, 1000);
+  });
+}
+
 const textoSimbolo1 = `En esta imagen vemos el disco en planta. Alrededor del disco, en código binario aparece la velocidad a la que hay que girar el disco. Aparece también representado el cartucho de la aguja en el borde exterior del disco`;
 
 let intervalo;
@@ -347,6 +458,10 @@ document.addEventListener('pointerdown', (e) => {
   ) {
     ocultarMarco();
   }
+});
+
+window.addEventListener('load', () => {
+  ejecutarIntros();
 });
 
 </script>
