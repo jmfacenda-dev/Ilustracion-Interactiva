@@ -53,6 +53,7 @@ html, body {
   position: absolute;
   background: transparent;
   border: none;
+  pointer-events: none; /* 🔒 bloqueados al inicio */
 }
 
 /* SÍMBOLO 1 – disco arriba izquierda */
@@ -210,7 +211,7 @@ html, body {
   width: 100%;
   text-align: center;
   color: rgba(255,255,255,0.7);
-  font-size: 0.9rem;
+  font-size: 1.6rem;
   opacity: 1;
   transition: opacity 0.3s ease;
   pointer-events: none;
@@ -253,6 +254,71 @@ html, body {
   pointer-events: none;
 }
 
+/* =========================
+   TEXTO PUNTILLISTA
+   ========================= */
+
+.punto {
+  opacity: 0;
+  filter: blur(4px);
+  transition: opacity 0.25s ease, filter 0.25s ease;
+  white-space: normal;
+}
+
+#texto-animado {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+
+.punto.visible {
+  opacity: 1;
+  filter: blur(0);
+}
+
+/* =========================
+   APARICIÓN SUAVE DEL TEXTO
+   ========================= */
+
+.texto-fade-in {
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.texto-fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =========================
+   FLECHA SÍMBOLO 1
+   ========================= */
+
+.flecha {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 20;
+}
+
+.flecha line {
+  stroke: rgba(255, 255, 255, 0.75);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.flecha polygon {
+  fill: rgba(255, 255, 255, 0.75);
+}
+
+.flecha.visible {
+  opacity: 1;
+}
+
+
 
 </style>
 </head>
@@ -265,7 +331,8 @@ html, body {
 
     <!-- hotspots -->
     <div class="hotspot s1" onclick="mostrarMarco()"></div>
-    <div class="hotspot s2"></div>
+    <div class="hotspot s2" onclick="mostrarMarco2()"></div>
+<div class="resaltado s2"></div>
     <div class="hotspot s3"></div>
     <div class="hotspot s4"></div>
     <div class="hotspot s5"></div>
@@ -273,6 +340,14 @@ html, body {
 
     <!-- marco -->
     <div class="resaltado s1"></div>
+
+
+<!-- Flecha símbolo 1 -->
+<svg id="flecha-s1" class="flecha" viewBox="0 0 100 100" preserveAspectRatio="none">
+  <line x1="25" y1="78" x2="72" y2="42" />
+  <polygon points="72,39 80,42 72,45" />
+</svg>
+
   </div>
 
   <!-- UI fuera de la imagen -->
@@ -297,15 +372,13 @@ html, body {
    ========================= */
 
 const textosIntro = [
-  `Este es el primer texto introductorio.
-Introduce el significado general de la ilustración.`,
+  `El Disco de Oro de las Voyager es un fonógrafo de cobre chapado en oro, lanzado por la NASA en 1977 a bordo de las sondas Voyager 1 y 2, que contiene sonidos e imágenes para representar la diversidad de la vida y cultura de la Tierra a posibles civilizaciones extraterrestres. Diseñado como una cápsula del tiempo, incluye música, saludos en 55 idiomas y sonidos naturales, siendo un mensaje simbólico que viaja por el espacio interestelar.`,
 
-  `Este es el segundo texto introductorio.
-Ahora puedes tocar los símbolos para explorarlos.`
+  `Esta es la "Cara A" del disco de las Voyager. Aquí aparecen las instrucciones para leer correctamente el disco. Vamos a interpretarlas.`
 ];
 
-const VELOCIDAD_INTRO = 40;
-const PAUSA_INTRO = 900;
+const VELOCIDAD_INTRO = 70;
+const PAUSA_INTRO = 300;
 
 function escribirIntro(texto, callback) {
   const el = document.getElementById('intro-animado');
@@ -344,29 +417,122 @@ function ocultarIntro(callback) {
 
 function ejecutarIntros(indice = 0) {
   if (indice >= textosIntro.length) {
-    // ACTIVAR HOTSPOTS Y HINT AL FINAL
+
+    // 🔓 ACTIVAR HOTSPOTS
+    document.querySelectorAll('.hotspot').forEach(h => {
+      h.style.pointerEvents = 'auto';
+    });
+
+    // 👆 MOSTRAR HINT
     document.querySelector('.hint')?.classList.remove('oculto');
+
     return;
   }
 
+    // limpiar texto ANTES de mostrar la intro
+  document.getElementById('intro-animado').textContent = '';
+
   mostrarIntro();
 
-  escribirIntro(textosIntro[indice], () => {
-    setTimeout(() => {
-      ocultarIntro(() => {
-        setTimeout(() => {
-          ejecutarIntros(indice + 1);
-        }, PAUSA_INTRO);
-      });
-    }, 1000);
-  });
+  const pausaFade = indice === 1 ? 700 : 600;
+
+
+  setTimeout(() => {
+    escribirIntro(textosIntro[indice], () => {
+      setTimeout(() => {
+        ocultarIntro(() => {
+          setTimeout(() => {
+            ejecutarIntros(indice + 1);
+          }, PAUSA_INTRO);
+        });
+      }, 1000);
+    });
+  }, pausaFade);
 }
 
-const textoSimbolo1 = `En esta imagen vemos el disco en planta. Alrededor del disco, en código binario aparece la velocidad a la que hay que girar el disco. Aparece también representado el cartucho de la aguja en el borde exterior del disco`;
+const textoSimbolo1 = `En esta imagen vemos el disco en planta. Alrededor del disco, en código binario (|=1 —=0) aparece la velocidad a la que hay que girar el disco, expresado en 0,70 × 10⁻⁹ segundos, el periodo de tiempo asociado con la transición fundamental del átomo de hidrógeno. 
+
+Aparece también representado el cartucho de la aguja en el borde exterior del disco`;
+
+const textoSimbolo2 = `Apariencia general de la forma de onda de las señales de vídeo que se encuentran en la grabación. Es lo que veríamos en un osciloscopio.
+`;
+
+
+let temporizadorPopup = null;
+
+let popupActivo = false;
+
+
+/* =========================
+   TEXTO PUNTILLISTA
+   ========================= */
+
+function escribirPuntillista(texto, elementoId, velocidad = 12) {
+  const el = document.getElementById(elementoId);
+  el.innerHTML = '';
+
+  const spans = [];
+
+  texto.split('').forEach(char => {
+    const span = document.createElement('span');
+  span.textContent = char;
+
+    span.classList.add('punto');
+    el.appendChild(span);
+    spans.push(span);
+  });
+
+  const orden = spans.sort(() => Math.random() - 0.5);
+
+  let i = 0;
+  const intervalo = setInterval(() => {
+    orden[i].classList.add('visible');
+    i++;
+    if (i >= orden.length) {
+      clearInterval(intervalo);
+    }
+  }, velocidad);
+}
+
+function desvanecerPuntillista(elementoId, callback) {
+  const el = document.getElementById(elementoId);
+  const puntos = Array.from(el.querySelectorAll('.punto'));
+
+  // orden aleatorio
+  const orden = puntos.sort(() => Math.random() - 0.5);
+
+  let i = 0;
+  const intervalo = setInterval(() => {
+    orden[i].classList.remove('visible');
+    i++;
+
+    if (i >= orden.length) {
+      clearInterval(intervalo);
+      if (callback) callback();
+    }
+  }, 12);
+}
+
+function prepararTextoParaDesvanecer(elementoId) {
+  const el = document.getElementById(elementoId);
+  const texto = el.textContent;
+  el.innerHTML = '';
+
+  texto.split('').forEach(char => {
+    const span = document.createElement('span');
+    span.textContent = char;
+    span.classList.add('punto', 'visible');
+    el.appendChild(span);
+  });
+}
 
 let intervalo;
 
 function mostrarMarco() {
+
+  if (popupActivo) return;
+  popupActivo = true;
+
   // Mostrar marco y botón
 
   document.querySelector('.hint')?.classList.add('oculto');
@@ -378,28 +544,88 @@ function mostrarMarco() {
   const caja = document.getElementById('caja-texto-1');
   const texto = document.getElementById('texto-animado');
   caja.style.display = 'block';
-  texto.textContent = '';
+  texto.textContent = textoSimbolo1;
+texto.classList.remove('visible');
+texto.classList.add('texto-fade-in');
 
-  // Animación letra a letra
-  let i = 0;
-  clearInterval(intervalo);
-  intervalo = setInterval(() => {
-    texto.textContent += textoSimbolo1[i];
-    i++;
-    if (i >= textoSimbolo1.length) {
-      clearInterval(intervalo);
-    }
-  }, 30); // velocidad (sube a 40–50 si quieres más lento)
+// forzar reflow para que el fade funcione siempre
+void texto.offsetWidth;
+
+texto.classList.add('visible');
+
+document.getElementById('flecha-s1').classList.add('visible');
+
+
+// ⏱ cierre automático del popup
+clearTimeout(temporizadorPopup);
+temporizadorPopup = setTimeout(() => {
+  ocultarMarco();
+}, 18000); // ← tiempo antes de cerrarse solo (ms)
+
+
+}
+
+function mostrarMarco2() {
+
+  if (popupActivo) return;
+  popupActivo = true;
+
+  // Mostrar marco y botón
+
+  document.querySelector('.hint')?.classList.add('oculto');
+
+  document.querySelector('.resaltado.s2').style.display = 'block';
+  document.querySelector('.cerrar-marco').style.display = 'block';
+
+  // Mostrar caja de texto
+  const caja = document.getElementById('caja-texto-1');
+  const texto = document.getElementById('texto-animado');
+  caja.style.display = 'block';
+  texto.textContent = textoSimbolo2;
+texto.classList.remove('visible');
+texto.classList.add('texto-fade-in');
+void texto.offsetWidth;
+texto.classList.add('visible');
+
+
+// ⏱ cierre automático del popup
+clearTimeout(temporizadorPopup);
+temporizadorPopup = setTimeout(() => {
+  ocultarMarco();
+}, 18000); // ← tiempo antes de cerrarse solo (ms)
+
+
 }
 
 function ocultarMarco() {
-  document.querySelector('.resaltado.s1').style.display = 'none';
-  document.querySelector('.cerrar-marco').style.display = 'none';
-  document.getElementById('caja-texto-1').style.display = 'none';
+clearTimeout(temporizadorPopup);
+popupActivo = false;
 
-  document.querySelector('.hint')?.classList.remove('oculto');
+  const texto = document.getElementById('texto-animado');
+
+document.getElementById('flecha-s1').classList.remove('visible');
+
+
+// convertir el texto actual en puntitos (SIN animación)
+prepararTextoParaDesvanecer('texto-animado');
+
+setTimeout(() => {
+  desvanecerPuntillista('texto-animado', () => {
+
+     document.querySelector('.resaltado.s1').style.display = 'none';
+    document.querySelector('.resaltado.s2').style.display = 'none';
+    document.querySelector('.cerrar-marco').style.display = 'none';
+    document.getElementById('caja-texto-1').style.display = 'none';
+
+    document.querySelector('.hint')?.classList.remove('oculto');
+  });
+}, 50);
 
 }
+
+
+
+
 
 // =========================
 // SWIPE DOWN PARA CERRAR
