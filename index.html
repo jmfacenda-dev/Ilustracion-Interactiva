@@ -291,34 +291,6 @@ html, body {
   transform: translateY(0);
 }
 
-/* =========================
-   FLECHA SÍMBOLO 1
-   ========================= */
-
-.flecha {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  z-index: 20;
-}
-
-.flecha line {
-  stroke: rgba(255, 255, 255, 0.75);
-  stroke-width: 1;
-  stroke-linecap: round;
-}
-
-.flecha polygon {
-  fill: rgba(255, 255, 255, 0.75);
-}
-
-.flecha.visible {
-  opacity: 1;
-}
-
-
 
 </style>
 </head>
@@ -333,21 +305,29 @@ html, body {
     <div class="hotspot s1" onclick="mostrarMarco()"></div>
     <div class="hotspot s2" onclick="mostrarMarco2()"></div>
 <div class="resaltado s2"></div>
-    <div class="hotspot s3"></div>
-    <div class="hotspot s4"></div>
-    <div class="hotspot s5"></div>
-    <div class="hotspot s6"></div>
+   <div class="hotspot s3" onclick="mostrarMarco3()"></div>
+
+    <div class="hotspot s4" onclick="mostrarMarco4()"></div>
+    <div class="hotspot s5" onclick="mostrarMarco5()"></div>
+    <div class="hotspot s6" onclick="mostrarMarco6()"></div>
 
     <!-- marco -->
     <div class="resaltado s1"></div>
+    <div class="resaltado s3"></div>
+    <div class="resaltado s4"></div>
+    <div class="resaltado s5"></div>
+    <div class="resaltado s6"></div>
+
+
 
 
 <!-- Flecha símbolo 1 -->
+<!--
 <svg id="flecha-s1" class="flecha" viewBox="0 0 100 100" preserveAspectRatio="none">
   <line x1="25" y1="78" x2="72" y2="42" />
   <polygon points="72,39 80,42 72,45" />
 </svg>
-
+-->
   </div>
 
   <!-- UI fuera de la imagen -->
@@ -372,9 +352,9 @@ html, body {
    ========================= */
 
 const textosIntro = [
-  `El Disco de Oro de las Voyager es un fonógrafo de cobre chapado en oro, lanzado por la NASA en 1977 a bordo de las sondas Voyager 1 y 2, que contiene sonidos e imágenes para representar la diversidad de la vida y cultura de la Tierra a posibles civilizaciones extraterrestres. Diseñado como una cápsula del tiempo, incluye música, saludos en 55 idiomas y sonidos naturales, siendo un mensaje simbólico que viaja por el espacio interestelar.`,
+  `El Disco de Oro de las Voyager, lanzado por la NASA en 1977, es una cápsula del tiempo que reúne sonidos, imágenes, música y saludos en 55 idiomas para representar la vida y la cultura de la Tierra, con la intención de comunicarse simbólicamente con posibles civilizaciones extraterrestres.`,
 
-  `Esta es la "Cara A" del disco de las Voyager. Aquí aparecen las instrucciones para leer correctamente el disco. Vamos a interpretarlas.`
+  `Estas viendo la "Cara A". Aquí aparecen las instrucciones para leer correctamente el disco.`
 ];
 
 const VELOCIDAD_INTRO = 70;
@@ -450,13 +430,28 @@ function ejecutarIntros(indice = 0) {
   }, pausaFade);
 }
 
-const textoSimbolo1 = `En esta imagen vemos el disco en planta. Alrededor del disco, en código binario (|=1 —=0) aparece la velocidad a la que hay que girar el disco, expresado en 0,70 × 10⁻⁹ segundos, el periodo de tiempo asociado con la transición fundamental del átomo de hidrógeno. 
+const textoSimbolo1 = `En esta imagen vemos el disco en planta. El código binario (|=1 —=0) indica la velocidad a la que hay que girarlo.
+Aparece también representado el cartucho de la aguja`;
 
-Aparece también representado el cartucho de la aguja en el borde exterior del disco`;
+const textoSimbolo2 = `Apariencia general de la forma de onda de las señales de vídeo que se encuentran en la grabación. Es lo que veríamos en un osciloscopio. El código binario indica el tiempo del escaneo (~8 mseg)
+`;
+const textoSimbolo3 = `Imagen de vídeo que muestra la dirección del escaneo. El código binario indica el tiempo de cada barrido de escaneo (512 líneas verticales por imagen completa)
 
-const textoSimbolo2 = `Apariencia general de la forma de onda de las señales de vídeo que se encuentran en la grabación. Es lo que veríamos en un osciloscopio.
+Si se decodifica correctamente, la primera imagen que aparecerá es un círculo.
 `;
 
+const textoSimbolo4 = `Vista en alzado del disco. En código binario aparece el tiempo de reproducción (~ 1 hora)
+`;
+
+const textoSimbolo5 = `Este diagrama define la ubicación de nuestro sol utilizando 14 púlsares de direcciones conocidas desde nuestra estrella. El código binario define la frecuencia de los pulsos. 
+
+La línea más larga sin código binario es la Voyager.
+`;
+
+const textoSimbolo6 = `Este diagrama ilustra los dos estados más bajos del átomo de hidrógeno.
+
+Las líneas verticales con los puntos indican los momentos de espín del protón y el electrón. El tiempo de transición de un estado a otro es la base de tiempo usado en todos los diagramas de esta cara y las imágenes decodificadas.
+`;
 
 let temporizadorPopup = null;
 
@@ -553,14 +548,13 @@ void texto.offsetWidth;
 
 texto.classList.add('visible');
 
-document.getElementById('flecha-s1').classList.add('visible');
 
 
 // ⏱ cierre automático del popup
 clearTimeout(temporizadorPopup);
 temporizadorPopup = setTimeout(() => {
   ocultarMarco();
-}, 18000); // ← tiempo antes de cerrarse solo (ms)
+}, 10000); // ← tiempo antes de cerrarse solo (ms)
 
 
 }
@@ -592,9 +586,116 @@ texto.classList.add('visible');
 clearTimeout(temporizadorPopup);
 temporizadorPopup = setTimeout(() => {
   ocultarMarco();
-}, 18000); // ← tiempo antes de cerrarse solo (ms)
+ }, 8000); // ← tiempo antes de cerrarse solo (ms)
+}
+
+function mostrarMarco3() {
+
+  if (popupActivo) return;
+  popupActivo = true;
+
+  document.querySelector('.hint')?.classList.add('oculto');
+
+  document.querySelector('.resaltado.s3').style.display = 'block';
+  document.querySelector('.cerrar-marco').style.display = 'block';
 
 
+  const caja = document.getElementById('caja-texto-1');
+  const texto = document.getElementById('texto-animado');
+
+  caja.style.display = 'block';
+  texto.textContent = textoSimbolo3;
+
+  texto.classList.remove('visible');
+  texto.classList.add('texto-fade-in');
+  void texto.offsetWidth;
+  texto.classList.add('visible');
+
+  clearTimeout(temporizadorPopup);
+  temporizadorPopup = setTimeout(() => {
+    ocultarMarco();
+  }, 9000);
+}
+
+function mostrarMarco4() {
+
+  if (popupActivo) return;
+  popupActivo = true;
+
+  document.querySelector('.hint')?.classList.add('oculto');
+
+  document.querySelector('.resaltado.s4').style.display = 'block';
+  document.querySelector('.cerrar-marco').style.display = 'block';
+
+  const caja = document.getElementById('caja-texto-1');
+  const texto = document.getElementById('texto-animado');
+
+  caja.style.display = 'block';
+  texto.textContent = textoSimbolo4;
+
+  texto.classList.remove('visible');
+  texto.classList.add('texto-fade-in');
+  void texto.offsetWidth;
+  texto.classList.add('visible');
+
+  clearTimeout(temporizadorPopup);
+  temporizadorPopup = setTimeout(() => {
+    ocultarMarco();
+  }, 8000);   // ⏱ mismo tiempo que el 3
+}
+
+function mostrarMarco5() {
+
+  if (popupActivo) return;
+  popupActivo = true;
+
+  document.querySelector('.hint')?.classList.add('oculto');
+
+  document.querySelector('.resaltado.s5').style.display = 'block';
+  document.querySelector('.cerrar-marco').style.display = 'block';
+
+  const caja = document.getElementById('caja-texto-1');
+  const texto = document.getElementById('texto-animado');
+
+  caja.style.display = 'block';
+  texto.textContent = textoSimbolo5;
+
+  texto.classList.remove('visible');
+  texto.classList.add('texto-fade-in');
+  void texto.offsetWidth;
+  texto.classList.add('visible');
+
+  clearTimeout(temporizadorPopup);
+  temporizadorPopup = setTimeout(() => {
+    ocultarMarco();
+  }, 9000);
+}
+
+function mostrarMarco6() {
+
+  if (popupActivo) return;
+  popupActivo = true;
+
+  document.querySelector('.hint')?.classList.add('oculto');
+
+  document.querySelector('.resaltado.s6').style.display = 'block';
+  document.querySelector('.cerrar-marco').style.display = 'block';
+
+  const caja = document.getElementById('caja-texto-1');
+  const texto = document.getElementById('texto-animado');
+
+  caja.style.display = 'block';
+  texto.textContent = textoSimbolo6;
+
+  texto.classList.remove('visible');
+  texto.classList.add('texto-fade-in');
+  void texto.offsetWidth;
+  texto.classList.add('visible');
+
+  clearTimeout(temporizadorPopup);
+  temporizadorPopup = setTimeout(() => {
+    ocultarMarco();
+  }, 11000);
 }
 
 function ocultarMarco() {
@@ -603,7 +704,6 @@ popupActivo = false;
 
   const texto = document.getElementById('texto-animado');
 
-document.getElementById('flecha-s1').classList.remove('visible');
 
 
 // convertir el texto actual en puntitos (SIN animación)
@@ -614,6 +714,12 @@ setTimeout(() => {
 
      document.querySelector('.resaltado.s1').style.display = 'none';
     document.querySelector('.resaltado.s2').style.display = 'none';
+    document.querySelector('.resaltado.s3').style.display = 'none';
+    document.querySelector('.resaltado.s4').style.display = 'none';
+    document.querySelector('.resaltado.s5').style.display = 'none';
+    document.querySelector('.resaltado.s6').style.display = 'none';
+
+
     document.querySelector('.cerrar-marco').style.display = 'none';
     document.getElementById('caja-texto-1').style.display = 'none';
 
