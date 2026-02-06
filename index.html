@@ -162,8 +162,10 @@ html, body {
 .caja-texto {
   position: absolute;
   bottom: 6%;
-  left: 6%;
+  left: 50%;
+  transform: translateX(-50%);
   width: 88%;
+
   background: rgba(20, 20, 20, 0.75);
   color: white;
   padding: 1.2rem;
@@ -174,6 +176,12 @@ html, body {
   display: none;
   touch-action: none;
 
+}
+
+/* VARIANTE SUPERIOR — solo popups 5 y 6 */
+.caja-texto.top {
+  top: 6%;
+  bottom: auto;
 }
 
 /* =========================
@@ -193,11 +201,11 @@ html, body {
 @keyframes aparecer {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateX(-50%) translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(-50%) translateY(0);
   }
 }
 /* =========================
@@ -443,7 +451,7 @@ Si se decodifica correctamente, la primera imagen que aparecerá es un círculo.
 const textoSimbolo4 = `Vista en alzado del disco. En código binario aparece el tiempo de reproducción (~ 1 hora)
 `;
 
-const textoSimbolo5 = `Este diagrama define la ubicación de nuestro sol utilizando 14 púlsares de direcciones conocidas desde nuestra estrella. El código binario define la frecuencia de los pulsos. 
+const textoSimbolo5 = `Este diagrama define la ubicación de nuestro Sistema Solar utilizando 14 púlsares de direcciones conocidas desde nuestra estrella. El código binario define la frecuencia de los pulsos. 
 
 La línea más larga sin código binario es la Voyager.
 `;
@@ -657,6 +665,8 @@ function mostrarMarco5() {
   const caja = document.getElementById('caja-texto-1');
   const texto = document.getElementById('texto-animado');
 
+  caja.classList.add('top');
+
   caja.style.display = 'block';
   texto.textContent = textoSimbolo5;
 
@@ -684,6 +694,9 @@ function mostrarMarco6() {
   const caja = document.getElementById('caja-texto-1');
   const texto = document.getElementById('texto-animado');
 
+  caja.classList.add('top');
+
+
   caja.style.display = 'block';
   texto.textContent = textoSimbolo6;
 
@@ -701,6 +714,8 @@ function mostrarMarco6() {
 function ocultarMarco() {
 clearTimeout(temporizadorPopup);
 popupActivo = false;
+
+
 
   const texto = document.getElementById('texto-animado');
 
@@ -722,6 +737,10 @@ setTimeout(() => {
 
     document.querySelector('.cerrar-marco').style.display = 'none';
     document.getElementById('caja-texto-1').style.display = 'none';
+
+
+   const caja = document.getElementById('caja-texto-1');
+   caja.classList.remove('top');
 
     document.querySelector('.hint')?.classList.remove('oculto');
   });
