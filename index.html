@@ -170,8 +170,9 @@ html, body {
   color: white;
   padding: 1.2rem;
   border-radius: 18px;
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: 1.3rem;
+  line-height: 1.7;
+  letter-spacing: 0.3px;
   backdrop-filter: blur(6px);
   display: none;
   touch-action: none;
@@ -206,8 +207,14 @@ html, body {
   to {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
+    }
   }
+@keyframes parpadeoSuave {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.4; }
+  100% { opacity: 1; }
 }
+
 /* =========================
    INDICADOR INICIAL
    ========================= */
@@ -218,16 +225,21 @@ html, body {
   left: 0;
   width: 100%;
   text-align: center;
-  color: rgba(255,255,255,0.7);
+  color: #d4af37;
+  text-shadow: 0 0 6px rgba(212, 175, 55, 0.6);
   font-size: 1.6rem;
   opacity: 1;
   transition: opacity 0.3s ease;
   pointer-events: none;
   z-index: 9999;
+  
 }
 
 .hint.oculto {
   opacity: 0;
+}
+.hint.activo {
+  animation: parpadeoSuave 2s ease-in-out infinite;
 }
 
 /* =========================
@@ -245,8 +257,9 @@ html, body {
   text-align: center;
   color: white;
   font-family: 'Gruppo', sans-serif;
-  font-size: 1.1rem;
-  line-height: 1.6;
+  font-size: 1.3rem;
+  line-height: 1.7;
+  letter-spacing: 0.5px;
 
   background: rgba(0,0,0,0.6);
   padding: 1.5rem;
@@ -299,6 +312,33 @@ html, body {
   transform: translateY(0);
 }
 
+/* =========================
+   BANDERAS IDIOMA
+   ========================= */
+
+.selector-idioma {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  gap: 10px;
+  z-index: 20000;
+}
+
+.bandera {
+  width: 36px;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.5s ease;
+}
+
+.bandera:hover {
+  transform: scale(1.1);
+}
+
+.selector-idioma.oculto {
+  opacity: 0;
+  pointer-events: none;
+}
 
 </style>
 </head>
@@ -306,6 +346,14 @@ html, body {
 <body>
 
 <div class="contenedor">
+
+<!-- ===== SELECTOR IDIOMA ===== -->
+<div class="selector-idioma">
+  <img src="es.png" id="btn-es" class="bandera" alt="Español">
+  <img src="uk.png" id="btn-en" class="bandera" alt="English">
+</div>
+<!-- ===== FIN SELECTOR ===== -->
+
   <div class="imagen-wrapper">
     <img src="ilustracion.jpg" alt="Ilustración">
 
@@ -343,7 +391,7 @@ html, body {
   <div class="caja-texto" id="caja-texto-1">
     <p id="texto-animado"></p>
   </div>
-  <div class="hint oculto">Toca un símbolo</div>
+  <div class="hint oculto"></div>
 
 
 <!-- ===== INTROS ===== -->
@@ -352,6 +400,7 @@ html, body {
 </div>
 <!-- ===== FIN INTROS ===== -->
 
+<audio id="audioIntro" src="nikitakondrashev-space-440026.mp3" preload="auto"></audio>
 
 <script>
 
@@ -359,14 +408,22 @@ html, body {
    INTROS (2 PASOS)
    ========================= */
 
-const textosIntro = [
-  `El Disco de Oro de las Voyager, lanzado por la NASA en 1977, es una cápsula del tiempo que reúne sonidos, imágenes, música y saludos en 55 idiomas para representar la vida y la cultura de la Tierra, con la intención de comunicarse simbólicamente con posibles civilizaciones extraterrestres.`,
+const textosIntro = {
+  es: [
+    `El Disco de Oro de las Voyager, lanzado por la NASA en 1977 contiene sonidos, imágenes, música y saludos en 55 idiomas que representan la vida y la cultura de la Tierra, fue el primer intento de comunicación con posibles civilizaciones extraterrestres.`,
 
-  `Estas viendo la "Cara A". Aquí aparecen las instrucciones para leer correctamente el disco.`
-];
+    `Estas viendo la "Cara A". Aquí aparecen las instrucciones para leer correctamente el disco.`
+  ],
 
-const VELOCIDAD_INTRO = 70;
-const PAUSA_INTRO = 300;
+  en: [
+    `The Voyager Golden Record, launched by NASA in 1977, contains sounds, images, music and greetings in 55 languages representing life and culture on Earth. It was humanity’s first attempt to communicate with possible extraterrestrial civilizations.`,
+
+    `You are viewing the "Side A". Here appear the instructions to correctly read the record.`
+  ]
+};
+let idiomaActual = 'es';
+const VELOCIDAD_INTRO = 110;
+const PAUSA_INTRO = 700;
 
 function escribirIntro(texto, callback) {
   const el = document.getElementById('intro-animado');
@@ -404,7 +461,9 @@ function ocultarIntro(callback) {
 }
 
 function ejecutarIntros(indice = 0) {
-  if (indice >= textosIntro.length) {
+  if (indice >= textosIntro[idiomaActual].length) {
+
+fadeOutAudio(3000);  // 3 segundos de salida
 
     // 🔓 ACTIVAR HOTSPOTS
     document.querySelectorAll('.hotspot').forEach(h => {
@@ -412,8 +471,10 @@ function ejecutarIntros(indice = 0) {
     });
 
     // 👆 MOSTRAR HINT
-    document.querySelector('.hint')?.classList.remove('oculto');
-
+   const hint = document.querySelector('.hint');
+hint.textContent = idiomaActual === 'es' ? 'Toca un símbolo' : 'Touch a symbol';
+hint?.classList.remove('oculto');
+hint?.classList.add('activo');
     return;
   }
 
@@ -426,7 +487,7 @@ function ejecutarIntros(indice = 0) {
 
 
   setTimeout(() => {
-    escribirIntro(textosIntro[indice], () => {
+    escribirIntro(textosIntro[idiomaActual][indice], () => {
       setTimeout(() => {
         ocultarIntro(() => {
           setTimeout(() => {
@@ -438,33 +499,70 @@ function ejecutarIntros(indice = 0) {
   }, pausaFade);
 }
 
-const textoSimbolo1 = `En esta imagen vemos el disco en planta. El código binario (|=1 —=0) indica la velocidad a la que hay que girarlo.
-Aparece también representado el cartucho de la aguja`;
+const textosSimbolos = {
+  es: {
+    s1: `En esta imagen vemos el disco en planta. El código binario (|=1 —=0) indica la velocidad a la que hay que girarlo. Aparece también representado el cartucho de la aguja`,
 
-const textoSimbolo2 = `Apariencia general de la forma de onda de las señales de vídeo que se encuentran en la grabación. Es lo que veríamos en un osciloscopio. El código binario indica el tiempo del escaneo (~8 mseg)
-`;
-const textoSimbolo3 = `Imagen de vídeo que muestra la dirección del escaneo. El código binario indica el tiempo de cada barrido de escaneo (512 líneas verticales por imagen completa)
+    s2: `Apariencia general de la forma de onda de las señales de vídeo que se encuentran en la grabación. Es lo que veríamos en un osciloscopio. El código binario indica el tiempo del escaneo (~8 mseg)`,
 
-Si se decodifica correctamente, la primera imagen que aparecerá es un círculo.
-`;
+    s3: `Imagen de vídeo que muestra la dirección del escaneo. El código binario indica el tiempo de cada barrido de escaneo (512 líneas verticales por imagen completa). Si se decodifica correctamente, la primera imagen que aparecerá es un círculo.`,
 
-const textoSimbolo4 = `Vista en alzado del disco. En código binario aparece el tiempo de reproducción (~ 1 hora)
-`;
+    s4: `Vista en alzado del disco. En código binario aparece el tiempo de reproducción (~1 hora)`,
 
-const textoSimbolo5 = `Posición de nuestro Sistema Solar utilizando 14 púlsares de direcciones conocidas desde nuestra estrella. El código binario define la frecuencia de los pulsos. 
+    s5: `Posición de nuestro Sistema Solar utilizando 14 púlsares de direcciones conocidas desde nuestra estrella. El código binario define la frecuencia de los pulsos. La línea más larga sin código binario es la Voyager.`,
 
-La línea más larga sin código binario es la Voyager.
-`;
+    s6: `Este diagrama ilustra los dos estados más bajos del átomo de hidrógeno. Las líneas verticales con los puntos indican los momentos de espín del protón y el electrón.`
+  },
 
-const textoSimbolo6 = `Este diagrama ilustra los dos estados más bajos del átomo de hidrógeno.
+  en: {
+    s1: `This image shows the record from above. The binary code (|=1 —=0) indicates the speed at which it must rotate. The cartridge stylus is also represented.`,
 
-Las líneas verticales con los puntos indican los momentos de espín del protón y el electrón. El tiempo de transición de un estado a otro es la base de tiempo usado en todos los diagramas de esta cara y las imágenes decodificadas.
-`;
+    s2: `General appearance of the video signal waveform contained in the recording. This is what we would see on an oscilloscope. The binary code indicates the scan time (~8 msec).`,
 
+    s3: `Video image showing scan direction. The binary code indicates the time of each scan sweep (512 vertical lines per full image). When decoded correctly, the first image will be a circle.`,
+
+    s4: `Side view of the record. The binary code indicates the playback time (~1 hour).`,
+
+    s5: `Position of our Solar System using 14 pulsars of known directions from our star. The binary code defines pulse frequency. The longest line without binary code represents Voyager.`,
+
+    s6: `This diagram illustrates the two lowest states of the hydrogen atom. The vertical lines with dots indicate the spin moments of the proton and the electron.`
+  }
+};
 let temporizadorPopup = null;
 
 let popupActivo = false;
 
+const audio = document.getElementById('audioIntro');
+
+function fadeInAudio(duration = 2000) {
+  audio.volume = 0;
+  audio.play();
+
+  const step = 0.05;
+  const interval = duration / (1 / step);
+
+  const fade = setInterval(() => {
+    if (audio.volume < 1) {
+      audio.volume = Math.min(1, audio.volume + step);
+    } else {
+      clearInterval(fade);
+    }
+  }, interval);
+}
+
+function fadeOutAudio(duration = 2000) {
+  const step = 0.05;
+  const interval = duration / (1 / step);
+
+  const fade = setInterval(() => {
+    if (audio.volume > 0) {
+      audio.volume = Math.max(0, audio.volume - step);
+    } else {
+      clearInterval(fade);
+      audio.pause();
+    }
+  }, interval);
+}
 
 /* =========================
    TEXTO PUNTILLISTA
@@ -538,7 +636,9 @@ function mostrarMarco() {
 
   // Mostrar marco y botón
 
-  document.querySelector('.hint')?.classList.add('oculto');
+  const hint = document.querySelector('.hint');
+hint?.classList.add('oculto');
+hint?.classList.remove('activo');
 
   document.querySelector('.resaltado.s1').style.display = 'block';
   document.querySelector('.cerrar-marco').style.display = 'block';
@@ -547,7 +647,7 @@ function mostrarMarco() {
   const caja = document.getElementById('caja-texto-1');
   const texto = document.getElementById('texto-animado');
   caja.style.display = 'block';
-  texto.textContent = textoSimbolo1;
+  texto.textContent = textosSimbolos[idiomaActual].s1;
 texto.classList.remove('visible');
 texto.classList.add('texto-fade-in');
 
@@ -574,7 +674,9 @@ function mostrarMarco2() {
 
   // Mostrar marco y botón
 
-  document.querySelector('.hint')?.classList.add('oculto');
+  const hint = document.querySelector('.hint');
+hint?.classList.add('oculto');
+hint?.classList.remove('activo');
 
   document.querySelector('.resaltado.s2').style.display = 'block';
   document.querySelector('.cerrar-marco').style.display = 'block';
@@ -583,7 +685,7 @@ function mostrarMarco2() {
   const caja = document.getElementById('caja-texto-1');
   const texto = document.getElementById('texto-animado');
   caja.style.display = 'block';
-  texto.textContent = textoSimbolo2;
+  texto.textContent = textosSimbolos[idiomaActual].s2;
 texto.classList.remove('visible');
 texto.classList.add('texto-fade-in');
 void texto.offsetWidth;
@@ -602,7 +704,9 @@ function mostrarMarco3() {
   if (popupActivo) return;
   popupActivo = true;
 
-  document.querySelector('.hint')?.classList.add('oculto');
+ const hint = document.querySelector('.hint');
+hint?.classList.add('oculto');
+hint?.classList.remove('activo');
 
   document.querySelector('.resaltado.s3').style.display = 'block';
   document.querySelector('.cerrar-marco').style.display = 'block';
@@ -612,7 +716,7 @@ function mostrarMarco3() {
   const texto = document.getElementById('texto-animado');
 
   caja.style.display = 'block';
-  texto.textContent = textoSimbolo3;
+  texto.textContent = textosSimbolos[idiomaActual].s3;
 
   texto.classList.remove('visible');
   texto.classList.add('texto-fade-in');
@@ -630,7 +734,9 @@ function mostrarMarco4() {
   if (popupActivo) return;
   popupActivo = true;
 
-  document.querySelector('.hint')?.classList.add('oculto');
+  const hint = document.querySelector('.hint');
+hint?.classList.add('oculto');
+hint?.classList.remove('activo');
 
   document.querySelector('.resaltado.s4').style.display = 'block';
   document.querySelector('.cerrar-marco').style.display = 'block';
@@ -639,7 +745,7 @@ function mostrarMarco4() {
   const texto = document.getElementById('texto-animado');
 
   caja.style.display = 'block';
-  texto.textContent = textoSimbolo4;
+  texto.textContent = textosSimbolos[idiomaActual].s4;
 
   texto.classList.remove('visible');
   texto.classList.add('texto-fade-in');
@@ -657,7 +763,9 @@ function mostrarMarco5() {
   if (popupActivo) return;
   popupActivo = true;
 
-  document.querySelector('.hint')?.classList.add('oculto');
+  const hint = document.querySelector('.hint');
+hint?.classList.add('oculto');
+hint?.classList.remove('activo');
 
   document.querySelector('.resaltado.s5').style.display = 'block';
   document.querySelector('.cerrar-marco').style.display = 'block';
@@ -668,7 +776,7 @@ function mostrarMarco5() {
   caja.classList.add('top');
 
   caja.style.display = 'block';
-  texto.textContent = textoSimbolo5;
+  texto.textContent = textosSimbolos[idiomaActual].s5;
 
   texto.classList.remove('visible');
   texto.classList.add('texto-fade-in');
@@ -686,7 +794,9 @@ function mostrarMarco6() {
   if (popupActivo) return;
   popupActivo = true;
 
-  document.querySelector('.hint')?.classList.add('oculto');
+  const hint = document.querySelector('.hint');
+hint?.classList.add('oculto');
+hint?.classList.remove('activo');
 
   document.querySelector('.resaltado.s6').style.display = 'block';
   document.querySelector('.cerrar-marco').style.display = 'block';
@@ -698,7 +808,7 @@ function mostrarMarco6() {
 
 
   caja.style.display = 'block';
-  texto.textContent = textoSimbolo6;
+  texto.textContent = textosSimbolos[idiomaActual].s6;
 
   texto.classList.remove('visible');
   texto.classList.add('texto-fade-in');
@@ -742,7 +852,9 @@ setTimeout(() => {
    const caja = document.getElementById('caja-texto-1');
    caja.classList.remove('top');
 
-    document.querySelector('.hint')?.classList.remove('oculto');
+    const hint = document.querySelector('.hint');
+hint?.classList.remove('oculto');
+hint?.classList.add('activo');
   });
 }, 50);
 
@@ -811,13 +923,30 @@ document.addEventListener('pointerdown', (e) => {
   }
 });
 
-window.addEventListener('load', () => {
+function iniciarExperiencia() {
+  fadeInAudio(3000);
   ejecutarIntros();
+}
+
+const btnES = document.getElementById('btn-es');
+const btnEN = document.getElementById('btn-en');
+const selectorIdioma = document.querySelector('.selector-idioma');
+
+
+btnES.addEventListener('click', () => {
+  idiomaActual = 'es';
+  selectorIdioma.classList.add('oculto');
+  iniciarExperiencia();
 });
 
+btnEN.addEventListener('click', () => {
+  idiomaActual = 'en';
+  selectorIdioma.classList.add('oculto');
+  iniciarExperiencia();
+});
+
+
 </script>
-
-
 
 </body>
 </html>
