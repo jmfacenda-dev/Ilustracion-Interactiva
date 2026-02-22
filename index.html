@@ -400,8 +400,7 @@ html, body {
 </div>
 <!-- ===== FIN INTROS ===== -->
 
-<audio id="audioIntro" src="nikitakondrashev-space-440026.mp3" preload="metadata"></audio>
-
+<audio id="audioIntro" src="nikitakondrashev-space-440026.mp3" preload="metadata" playsinline></audio>
 <script>
 
 /* =========================
@@ -535,30 +534,18 @@ let popupActivo = false;
 const audio = document.getElementById('audioIntro');
 
 function fadeInAudio(duration = 2000) {
-  audio.volume = 0;
 
-  const playPromise = audio.play();
+  let step = 0.05;
+  let interval = duration / (1 / step);
 
-  if (playPromise !== undefined) {
-    playPromise.then(() => {
-      // reproducción iniciada correctamente
-      let step = 0.05;
-      let interval = duration / (1 / step);
-
-      const fade = setInterval(() => {
-        if (audio.volume < 1) {
-          audio.volume = Math.min(1, audio.volume + step);
-        } else {
-          clearInterval(fade);
-        }
-      }, interval);
-
-    }).catch(error => {
-      console.log("Audio bloqueado por el navegador:", error);
-    });
-  }
+  const fade = setInterval(() => {
+    if (audio.volume < 1) {
+      audio.volume = Math.min(1, audio.volume + step);
+    } else {
+      clearInterval(fade);
+    }
+  }, interval);
 }
-
 
 function fadeOutAudio(duration = 2000) {
   const step = 0.05;
@@ -934,7 +921,15 @@ document.addEventListener('pointerdown', (e) => {
 });
 
 function iniciarExperiencia() {
-  fadeInAudio(3000);
+
+  // 🔓 Desbloquear audio inmediatamente en el gesto
+  audio.volume = 0;
+  audio.play().then(() => {
+    fadeInAudio(3000);
+  }).catch(() => {
+    console.log("El navegador bloqueó el audio");
+  });
+
   ejecutarIntros();
 }
 
