@@ -220,18 +220,25 @@ html, body {
    ========================= */
 
 .hint {
-  position: fixed;
-  bottom: 12px;
-  left: 0;
-  width: 100%;
+  position: absolute;
+  bottom: 4%;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 90%;
   text-align: center;
+
   color: #d4af37;
-  text-shadow: 0 0 6px rgba(212, 175, 55, 0.6);
-  font-size: 1.6rem;
+  text-shadow: 0 0 8px rgba(212, 175, 55, 0.8);
+
+  font-size: 2.2rem;   /* MÁS GRANDE */
+  letter-spacing: 1px;
+
   opacity: 1;
   transition: opacity 0.3s ease;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 5000;
+}
   
 }
 
@@ -374,16 +381,16 @@ html, body {
     <div class="resaltado s5"></div>
     <div class="resaltado s6"></div>
 
+    <div class="hint oculto"></div>
 
 
-
-<!-- Flecha símbolo 1 -->
+//<!-- Flecha símbolo 1 -->
 <!--
 <svg id="flecha-s1" class="flecha" viewBox="0 0 100 100" preserveAspectRatio="none">
   <line x1="25" y1="78" x2="72" y2="42" />
   <polygon points="72,39 80,42 72,45" />
 </svg>
--->
+-->//
   </div>
 
   <!-- UI fuera de la imagen -->
@@ -391,7 +398,7 @@ html, body {
   <div class="caja-texto" id="caja-texto-1">
     <p id="texto-animado"></p>
   </div>
-  <div class="hint oculto"></div>
+  
 
 
 <!-- ===== INTROS ===== -->
@@ -409,15 +416,15 @@ html, body {
 
 const textosIntro = {
   es: [
-    `El Disco de Oro de las Voyager, lanzado por la NASA en 1977 contiene sonidos, imágenes, música y saludos en 55 idiomas que representan la vida y la cultura de la Tierra, fue el primer intento de comunicación con posibles civilizaciones extraterrestres.`,
+    `El Disco de Oro de las Voyager, lanzado por la NASA en 1977 contiene sonidos, imágenes, música y saludos en 55 idiomas que representan la vida y la cultura de la Tierra. Es un intento de comunicación con posibles civilizaciones extraterrestres.`,
 
-    `Estas viendo la "Cara A". Aquí aparecen las instrucciones para leer correctamente el disco.`
+    `Esta es la "Cara A". Aquí aparecen las instrucciones.`
   ],
 
   en: [
-    `The Voyager Golden Record, launched by NASA in 1977, contains sounds, images, music and greetings in 55 languages representing life and culture on Earth. It was humanity’s first attempt to communicate with possible extraterrestrial civilizations.`,
+    `The Voyager Golden Record, launched by NASA in 1977, contains sounds, images, music and greetings in 55 languages representing life and culture on Earth. It is an attempt to communicate with possible extraterrestrial civilizations.`,
 
-    `You are viewing the "Side A". Here appear the instructions to correctly read the record.`
+    `This is the "Side A". Here appear the instructions.`
   ]
 };
 let idiomaActual = 'es';
