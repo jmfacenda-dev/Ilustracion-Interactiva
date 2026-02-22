@@ -400,7 +400,7 @@ html, body {
 </div>
 <!-- ===== FIN INTROS ===== -->
 
-<audio id="audioIntro" src="nikitakondrashev-space-440026.mp3" preload="auto"></audio>
+<audio id="audioIntro" src="nikitakondrashev-space-440026.mp3" preload="metadata"></audio>
 
 <script>
 
@@ -536,18 +536,28 @@ const audio = document.getElementById('audioIntro');
 
 function fadeInAudio(duration = 2000) {
   audio.volume = 0;
-  audio.play();
 
-  const step = 0.05;
-  const interval = duration / (1 / step);
+  const playPromise = audio.play();
 
-  const fade = setInterval(() => {
-    if (audio.volume < 1) {
-      audio.volume = Math.min(1, audio.volume + step);
-    } else {
-      clearInterval(fade);
-    }
-  }, interval);
+  if (playPromise !== undefined) {
+    playPromise.then(() => {
+      // reproducción iniciada correctamente
+      let step = 0.05;
+      let interval = duration / (1 / step);
+
+      const fade = setInterval(() => {
+        if (audio.volume < 1) {
+          audio.volume = Math.min(1, audio.volume + step);
+        } else {
+          clearInterval(fade);
+        }
+      }, interval);
+
+    }).catch(error => {
+      console.log("Audio bloqueado por el navegador:", error);
+    });
+  }
+}
 }
 
 function fadeOutAudio(duration = 2000) {
