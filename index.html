@@ -44,8 +44,7 @@ html, body {
 .contenedor {
   position: relative;
   width: 100%;
-  height: 100dvh;
-  overflow: hidden;
+  min-height: 100dvh;
 }
 
 /* HOTSPOTS (VISIBLES PARA PRUEBA) */
@@ -1083,14 +1082,13 @@ document.querySelector('.label-idioma').style.display = 'none';
 
 <script>
 window.addEventListener('load', () => {
-
-  // pequeño delay para asegurar render
   setTimeout(() => {
-    window.scrollTo(0, 1);
-  }, 300);
-
+    window.scrollTo({ top: 1, behavior: "instant" });
+  }, 500);
 });
 </script>
+
+<div style="height:1px;"></div>
 
 </body>
 </html>
