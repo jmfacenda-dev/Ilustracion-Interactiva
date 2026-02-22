@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<title>Ilustración interactiva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gruppo&display=swap" rel="stylesheet">
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: black;
+  font-family: 'Gruppo', sans-serif;
+
+}
+/* =========================
+   WRAPPER REAL DE LA IMAGEN
+   ========================= */
+
+.imagen-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.imagen-wrapper img {
+  display: block;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+/* CONTENEDOR DE LA IMAGEN */
+.contenedor {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* HOTSPOTS (VISIBLES PARA PRUEBA) */
+.hotspot {
+  position: absolute;
+  background: transparent;
+  border: none;
+  pointer-events: none; /* 🔒 bloqueados al inicio */
+}
+
+/* SÍMBOLO 1 – disco arriba izquierda */
+.s1 {
+  top: 13%;
+  left: 13%;
+  width: 26%;
+  height: 29%;
+}
+
+/* SÍMBOLO 2 – onda arriba derecha */
+.s2 {
+  top: 14%;
+  left: 47%;
+  width: 37%;
+  height: 25%;
+}
+
+/* SÍMBOLO 3 – zigzag con nodos */
+.s3 {
+  top: 40%;
+  left: 58%;
+  width: 14%;
+  height: 25%;
+}
+
+/* SÍMBOLO 4 – rectángulo + círculo */
+.s4 {
+  top: 46%;
+  left: 15%;
+  width: 24%;
+  height: 11%;
+}
+
+/* SÍMBOLO 5 – explosión radial */
+.s5 {
+  top: 58%;
+  left: 16%;
+  width: 40%;
+  height: 33%;
+}
+
+/* SÍMBOLO 6 – doble círculo */
+.s6 {
+  top: 81%;
+  left: 59%;
+  width: 14%;
+  height: 9%;
+}
+
+.popup {
+  position: absolute;
+  inset: 0;
+  display: none;
+  background: rgba(0,0,0,0.6);
+}
+
+.popup-contenido {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  width: 80%;
+  background: rgba(255,255,255,0.95);
+  padding: 1rem;
+  border-radius: 12px;
+  max-height: 80%;
+  overflow-y: auto;
+}
+
+.cerrar {
+  float: right;
+  border: none;
+  background: none;
+  font-size: 1.2rem;
+}
+
+/* =========================
+   MARCO ROJO DE RESALTADO
+   ========================= */
+
+.resaltado {
+  position: absolute;
+  border: 2px solid rgba(255, 60, 60, 0.9);
+  border-radius: 16px;
+  box-shadow: 0 0 12px rgba(255, 60, 60, 0.6);
+  pointer-events: none;
+  display: none;
+}
+
+.cerrar-marco {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  display: none;
+  z-index: 10;
+}
+
+/* CAJA DE TEXTO SOBRE LA IMAGEN */
+.caja-texto {
+  position: absolute;
+  bottom: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 88%;
+
+  background: rgba(20, 20, 20, 0.75);
+  color: white;
+  padding: 1.2rem;
+  border-radius: 18px;
+  font-size: 1.3rem;
+  line-height: 1.7;
+  letter-spacing: 0.3px;
+  backdrop-filter: blur(6px);
+  display: none;
+  touch-action: none;
+
+}
+
+/* VARIANTE SUPERIOR — solo popups 5 y 6 */
+.caja-texto.top {
+  top: 6%;
+  bottom: auto;
+}
+
+/* =========================
+   MICRO DETALLES TÁCTILES
+   ========================= */
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.caja-texto {
+  animation: aparecer 0.25s ease-out;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    }
+  }
+@keyframes parpadeoSuave {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+/* =========================
+   INDICADOR INICIAL
+   ========================= */
+
+.hint {
+  position: fixed;
+  bottom: 12px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #d4af37;
+  text-shadow: 0 0 6px rgba(212, 175, 55, 0.6);
+  font-size: 1.6rem;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 9999;
+  
+}
+
+.hint.oculto {
+  opacity: 0;
+}
+.hint.activo {
+  animation: parpadeoSuave 2s ease-in-out infinite;
+}
+
+/* =========================
+   INTROS CENTRADAS
+   ========================= */
+
+.intro-texto {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 420px;
+
+  text-align: center;
+  color: white;
+  font-family: 'Gruppo', sans-serif;
+  font-size: 1.3rem;
+  line-height: 1.7;
+  letter-spacing: 0.5px;
+
+  background: rgba(0,0,0,0.6);
+  padding: 1.5rem;
+  border-radius: 18px;
+
+  z-index: 10000;
+
+  /* CLAVE PARA NO ROMPER INTERACCIÓN */
+  display: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+
+  pointer-events: none;
+}
+
+/* =========================
+   TEXTO PUNTILLISTA
+   ========================= */
+
+.punto {
+  opacity: 0;
+  filter: blur(4px);
+  transition: opacity 0.25s ease, filter 0.25s ease;
+  white-space: normal;
+}
+
+#texto-animado {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+
+.punto.visible {
+  opacity: 1;
+  filter: blur(0);
+}
+
+/* =========================
+   APARICIÓN SUAVE DEL TEXTO
+   ========================= */
+
+.texto-fade-in {
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.texto-fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =========================
+   BANDERAS IDIOMA
+   ========================= */
+
+.selector-idioma {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  gap: 10px;
+  z-index: 20000;
+}
+
+.bandera {
+  width: 36px;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.5s ease;
+}
+
+.bandera:hover {
+  transform: scale(1.1);
+}
+
+.selector-idioma.oculto {
+  opacity: 0;
+  pointer-events: none;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+<!-- ===== SELECTOR IDIOMA ===== -->
+<div class="selector-idioma">
+  <img src="es.png" id="btn-es" class="bandera" alt="Español">
+  <img src="uk.png" id="btn-en" class="bandera" alt="English">
+</div>
+<!-- ===== FIN SELECTOR ===== -->
+
+  <div class="imagen-wrapper">
+    <img src="ilustracion.jpg" alt="Ilustración">
+
+    <!-- hotspots -->
+    <div class="hotspot s1" onclick="mostrarMarco()"></div>
+    <div class="hotspot s2" onclick="mostrarMarco2()"></div>
+<div class="resaltado s2"></div>
+   <div class="hotspot s3" onclick="mostrarMarco3()"></div>
+
+    <div class="hotspot s4" onclick="mostrarMarco4()"></div>
+    <div class="hotspot s5" onclick="mostrarMarco5()"></div>
+    <div class="hotspot s6" onclick="mostrarMarco6()"></div>
+
+    <!-- marco -->
+    <div class="resaltado s1"></div>
+    <div class="resaltado s3"></div>
+    <div class="resaltado s4"></div>
+    <div class="resaltado s5"></div>
+    <div class="resaltado s6"></div>
+
+
+
+
+<!-- Flecha símbolo 1 -->
+<!--
+<svg id="flecha-s1" class="flecha" viewBox="0 0 100 100" preserveAspectRatio="none">
+  <line x1="25" y1="78" x2="72" y2="42" />
+  <polygon points="72,39 80,42 72,45" />
+</svg>
+-->
+  </div>
+
+  <!-- UI fuera de la imagen -->
+  <button class="cerrar-marco" onclick="ocultarMarco()">✕</button>
+  <div class="caja-texto" id="caja-texto-1">
+    <p id="texto-animado"></p>
+  </div>
+  <div class="hint oculto">Toca un símbolo</div>
+
+
+<!-- ===== INTROS ===== -->
+<div class="intro-texto" id="intro">
+  <p id="intro-animado"></p>
+</div>
+<!-- ===== FIN INTROS ===== -->
+
+<audio id="audioIntro" src="nikitakondrashev-space-440026.mp3" preload="auto"></audio>
+
+<script>
+
+/* =========================
+   INTROS (2 PASOS)
+   ========================= */
+
+const textosIntro = {
+  es: [
+    `El Disco de Oro de las Voyager, lanzado por la NASA en 1977 contiene sonidos, imágenes, música y saludos en 55 idiomas que representan la vida y la cultura de la Tierra, fue el primer intento de comunicación con posibles civilizaciones extraterrestres.`,
+
+    `Estas viendo la "Cara A". Aquí aparecen las instrucciones para leer correctamente el disco.`
+  ],
+
+  en: [
+    `The Voyager Golden Record, launched by NASA in 1977, contains sounds, images, music and greetings in 55 languages representing life and culture on Earth. It was humanity’s first attempt to communicate with possible extraterrestrial civilizations.`,
+
+    `You are viewing the "Side A". Here appear the instructions to correctly read the record.`
+  ]
+};
+let idiomaActual = 'es';
+const VELOCIDAD_INTRO = 110;
+const PAUSA_INTRO = 700;
+
+function escribirIntro(texto, callback) {
+  const el = document.getElementById('intro-animado');
+  el.textContent = '';
+  let i = 0;
+
+  function escribir() {
+    if (i < texto.length) {
+      el.textContent += texto[i];
+      i++;
+      setTimeout(escribir, VELOCIDAD_INTRO);
+    } else {
+      callback();
+    }
+  }
+
+  escribir();
+}
+
+function mostrarIntro() {
+  const intro = document.getElementById('intro');
+  intro.style.display = 'block';
+  requestAnimationFrame(() => {
+    intro.style.opacity = '1';
+  });
+}
+
+function ocultarIntro(callback) {
+  const intro = document.getElementById('intro');
+  intro.style.opacity = '0';
+  setTimeout(() => {
+    intro.style.display = 'none';
+    if (callback) callback();
+  }, 1000);
+}
+
+function ejecutarIntros(indice = 0) {
+  if (indice >= textosIntro[idiomaActual].length) {
+
+fadeOutAudio(3000);  // 3 segundos de salida
+
+    // 🔓 ACTIVAR HOTSPOTS
+    document.querySelectorAll('.hotspot').forEach(h => {
+      h.style.pointerEvents = 'auto';
+    });
+
+    // 👆 MOSTRAR HINT
+   const hint = document.querySelector('.hint');
+hint?.classList.remove('oculto');
+hint?.classList.add('activo');
+    return;
+  }
+
+    // limpiar texto ANTES de mostrar la intro
+  document.getElementById('intro-animado').textContent = '';
+
+  mostrarIntro();
+
+  const pausaFade = indice === 1 ? 700 : 600;
+
+
+  setTimeout(() => {
+    escribirIntro(textosIntro[idiomaActual][indice], () => {
+      setTimeout(() => {
+        ocultarIntro(() => {
+          setTimeout(() => {
+            ejecutarIntros(indice + 1);
+          }, PAUSA_INTRO);
+        });
+      }, 1000);
+    });
+  }, pausaFade);
+}
+
+const textoSimbolo1 = `En esta imagen vemos el disco en planta. El código binario (|=1 —=0) indica la velocidad a la que hay que girarlo.
+Aparece también representado el cartucho de la aguja`;
+
+const textoSimbolo2 = `Apariencia general de la forma de onda de las señales de vídeo que se encuentran en la grabación. Es lo que veríamos en un osciloscopio. El código binario indica el tiempo del escaneo (~8 mseg)
+`;
+const textoSimbolo3 = `Imagen de vídeo que muestra la dirección del escaneo. El código binario indica el tiempo de cada barrido de escaneo (512 líneas verticales por imagen completa)
+
+Si se decodifica correctamente, la primera imagen que aparecerá es un círculo.
+`;
+
+const textoSimbolo4 = `Vista en alzado del disco. En código binario aparece el tiempo de reproducción (~ 1 hora)
+`;
+
+const textoSimbolo5 = `Posición de nuestro Sistema Solar utilizando 14 púlsares de direcciones conocidas desde nuestra estrella. El código binario define la frecuencia de los pulsos. 
+
+La línea más larga sin código binario es la Voyager.
+`;
+
+const textoSimbolo6 = `Este diagrama ilustra los dos estados más bajos del átomo de hidrógeno.
+
+Las líneas verticales con los puntos indican los momentos de espín del protón y el electrón. El tiempo de transición de un estado a otro es la base de tiempo usado en todos los diagramas de esta cara y las imágenes decodificadas.
+`;
+
+let temporizadorPopup = null;
+
+let popupActivo = false;
+
+const audio = document.getElementById('audioIntro');
+
+function fadeInAudio(duration = 2000) {
+  audio.volume = 0;
+  audio.play();
+
+  const step = 0.05;
+  const interval = duration / (1 / step);
+
+  const fade = setInterval(() => {
+    if (audio.volume < 1) {
+      audio.volume = Math.min(1, audio.volume + step);
+    } else {
+      clearInterval(fade);
+    }
+  }, interval);
+}
+
+function fadeOutAudio(duration = 2000) {
+  const step = 0.05;
+  const interval = duration / (1 / step);
+
+  const fade = setInterval(() => {
+    if (audio.volume > 0) {
+      audio.volume = Math.max(0, audio.volume - step);
+    } else {
+      clearInterval(fade);
+      audio.pause();
+    }
+  }, interval);
+}
+
+/* =========================
+   TEXTO PUNTILLISTA
+   ========================= */
+
+function escribirPuntillista(texto, elementoId, velocidad = 12) {
+  const el = document.getElementById(elementoId);
+  el.innerHTML = '';
+
+  const spans = [];
+
+  texto.split('').forEach(char => {
+    const span = document.createElement('span');
+  span.textContent = char;
+
+    span.classList.add('punto');
+    el.appendChild(span);
+    spans.push(span);
+  });
+
+  const orden = spans.sort(() => Math.random() - 0.5);
+
+  let i = 0;
+  const intervalo = setInterval(() => {
+    orden[i].classList.add('visible');
+    i++;
+    if (i >= orden.length) {
+      clearInterval(intervalo);
+    }
+  }, velocidad);
+}
+
+function desvanecerPuntillista(elementoId, callback) {
+  const el = document.getElementById(elementoId);
+  const puntos = Array.from(el.querySelectorAll('.punto'));
+
+  // orden aleatorio
+  const orden = puntos.sort(() => Math.random() - 0.5);
+
+  let i = 0;
+  const intervalo = setInterval(() => {
+    orden[i].classList.remove('visible');
+    i++;
+
+    if (i >= orden.length) {
+      clearInterval(intervalo);
+      if (callback) callback();
+    }
+  }, 12);
+}
+
+function prepararTextoParaDesvanecer(elementoId) {
+  const el = document.getElementById(elementoId);
+  const texto = el.textContent;
+  el.innerHTML = '';
+
+  texto.split('').forEach(char => {
+    const span = document.createElement('span');
+    span.textContent = char;
+    span.classList.add('punto', 'visible');
+    el.appendChild(span);
+  });
+}
+
+let intervalo;
+
+function mostrarMarco() {
+
+  if (popupActivo) return;
+  popupActivo = true;
+
+  // Mostrar marco y botón
+
+  const hint = document.querySelector('.hint');
+hint?.classList.add('oculto');
+hint?.classList.remove('activo');
+
+  document.querySelector('.resaltado.s1').style.display = 'block';
+  document.querySelector('.cerrar-marco').style.display = 'block';
+
+  // Mostrar caja de texto
+  const caja = document.getElementById('caja-texto-1');
+  const texto = document.getElementById('texto-animado');
+  caja.style.display = 'block';
+  texto.textContent = textoSimbolo1;
+texto.classList.remove('visible');
+texto.classList.add('texto-fade-in');
+
+// forzar reflow para que el fade funcione siempre
+void texto.offsetWidth;
+
+texto.classList.add('visible');
+
+
+
+// ⏱ cierre automático del popup
+clearTimeout(temporizadorPopup);
+temporizadorPopup = setTimeout(() => {
+  ocultarMarco();
+}, 10000); // ← tiempo antes de cerrarse solo (ms)
+
+
+}
+
+function mostrarMarco2() {
+
+  if (popupActivo) return;
+  popupActivo = true;
+
+  // Mostrar marco y botón
+
+  const hint = document.querySelector('.hint');
+hint?.classList.add('oculto');
+hint?.classList.remove('activo');
+
+  document.querySelector('.resaltado.s2').style.display = 'block';
+  document.querySelector('.cerrar-marco').style.display = 'block';
+
+  // Mostrar caja de texto
+  const caja = document.getElementById('caja-texto-1');
+  const texto = document.getElementById('texto-animado');
+  caja.style.display = 'block';
+  texto.textContent = textoSimbolo2;
+texto.classList.remove('visible');
+texto.classList.add('texto-fade-in');
+void texto.offsetWidth;
+texto.classList.add('visible');
+
+
+// ⏱ cierre automático del popup
+clearTimeout(temporizadorPopup);
+temporizadorPopup = setTimeout(() => {
+  ocultarMarco();
+ }, 8000); // ← tiempo antes de cerrarse solo (ms)
+}
+
+function mostrarMarco3() {
+
+  if (popupActivo) return;
+  popupActivo = true;
+
+ const hint = document.querySelector('.hint');
+hint?.classList.add('oculto');
+hint?.classList.remove('activo');
+
+  document.querySelector('.resaltado.s3').style.display = 'block';
+  document.querySelector('.cerrar-marco').style.display = 'block';
+
+
+  const caja = document.getElementById('caja-texto-1');
+  const texto = document.getElementById('texto-animado');
+
+  caja.style.display = 'block';
+  texto.textContent = textoSimbolo3;
+
+  texto.classList.remove('visible');
+  texto.classList.add('texto-fade-in');
+  void texto.offsetWidth;
+  texto.classList.add('visible');
+
+  clearTimeout(temporizadorPopup);
+  temporizadorPopup = setTimeout(() => {
+    ocultarMarco();
+  }, 9000);
+}
+
+function mostrarMarco4() {
+
+  if (popupActivo) return;
+  popupActivo = true;
+
+  const hint = document.querySelector('.hint');
+hint?.classList.add('oculto');
+hint?.classList.remove('activo');
+
+  document.querySelector('.resaltado.s4').style.display = 'block';
+  document.querySelector('.cerrar-marco').style.display = 'block';
+
+  const caja = document.getElementById('caja-texto-1');
+  const texto = document.getElementById('texto-animado');
+
+  caja.style.display = 'block';
+  texto.textContent = textoSimbolo4;
+
+  texto.classList.remove('visible');
+  texto.classList.add('texto-fade-in');
+  void texto.offsetWidth;
+  texto.classList.add('visible');
+
+  clearTimeout(temporizadorPopup);
+  temporizadorPopup = setTimeout(() => {
+    ocultarMarco();
+  }, 8000);   // ⏱ mismo tiempo que el 3
+}
+
+function mostrarMarco5() {
+
+  if (popupActivo) return;
+  popupActivo = true;
+
+  const hint = document.querySelector('.hint');
+hint?.classList.add('oculto');
+hint?.classList.remove('activo');
+
+  document.querySelector('.resaltado.s5').style.display = 'block';
+  document.querySelector('.cerrar-marco').style.display = 'block';
+
+  const caja = document.getElementById('caja-texto-1');
+  const texto = document.getElementById('texto-animado');
+
+  caja.classList.add('top');
+
+  caja.style.display = 'block';
+  texto.textContent = textoSimbolo5;
+
+  texto.classList.remove('visible');
+  texto.classList.add('texto-fade-in');
+  void texto.offsetWidth;
+  texto.classList.add('visible');
+
+  clearTimeout(temporizadorPopup);
+  temporizadorPopup = setTimeout(() => {
+    ocultarMarco();
+  }, 9000);
+}
+
+function mostrarMarco6() {
+
+  if (popupActivo) return;
+  popupActivo = true;
+
+  const hint = document.querySelector('.hint');
+hint?.classList.add('oculto');
+hint?.classList.remove('activo');
+
+  document.querySelector('.resaltado.s6').style.display = 'block';
+  document.querySelector('.cerrar-marco').style.display = 'block';
+
+  const caja = document.getElementById('caja-texto-1');
+  const texto = document.getElementById('texto-animado');
+
+  caja.classList.add('top');
+
+
+  caja.style.display = 'block';
+  texto.textContent = textoSimbolo6;
+
+  texto.classList.remove('visible');
+  texto.classList.add('texto-fade-in');
+  void texto.offsetWidth;
+  texto.classList.add('visible');
+
+  clearTimeout(temporizadorPopup);
+  temporizadorPopup = setTimeout(() => {
+    ocultarMarco();
+  }, 11000);
+}
+
+function ocultarMarco() {
+clearTimeout(temporizadorPopup);
+popupActivo = false;
+
+
+
+  const texto = document.getElementById('texto-animado');
+
+
+
+// convertir el texto actual en puntitos (SIN animación)
+prepararTextoParaDesvanecer('texto-animado');
+
+setTimeout(() => {
+  desvanecerPuntillista('texto-animado', () => {
+
+     document.querySelector('.resaltado.s1').style.display = 'none';
+    document.querySelector('.resaltado.s2').style.display = 'none';
+    document.querySelector('.resaltado.s3').style.display = 'none';
+    document.querySelector('.resaltado.s4').style.display = 'none';
+    document.querySelector('.resaltado.s5').style.display = 'none';
+    document.querySelector('.resaltado.s6').style.display = 'none';
+
+
+    document.querySelector('.cerrar-marco').style.display = 'none';
+    document.getElementById('caja-texto-1').style.display = 'none';
+
+
+   const caja = document.getElementById('caja-texto-1');
+   caja.classList.remove('top');
+
+    const hint = document.querySelector('.hint');
+hint?.classList.remove('oculto');
+hint?.classList.add('activo');
+  });
+}, 50);
+
+}
+
+
+
+
+
+// =========================
+// SWIPE DOWN PARA CERRAR
+// =========================
+
+let startY = 0;
+let currentY = 0;
+let dragging = false;
+
+const cajaTexto = document.getElementById('caja-texto-1');
+
+if (cajaTexto) {
+
+  cajaTexto.addEventListener('touchstart', (e) => {
+    startY = e.touches[0].clientY;
+    dragging = true;
+  }, { passive: true });
+
+  cajaTexto.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+
+    currentY = e.touches[0].clientY;
+    const deltaY = currentY - startY;
+
+    if (deltaY > 0) {
+      e.preventDefault(); // 🔑 CLAVE
+      cajaTexto.style.transform = `translateY(${deltaY}px)`;
+    }
+  }, { passive: false });
+
+  cajaTexto.addEventListener('touchend', () => {
+    dragging = false;
+
+    const deltaY = currentY - startY;
+
+    if (deltaY > 80) {
+      cajaTexto.style.transform = '';
+      ocultarMarco();
+    } else {
+      cajaTexto.style.transform = '';
+    }
+  });
+
+}
+// Cerrar tocando fuera del panel (NO afecta al swipe ni a la X)
+document.addEventListener('pointerdown', (e) => {
+  const caja = document.getElementById('caja-texto-1');
+  const marco = document.querySelector('.resaltado.s1');
+
+  if (
+    marco &&
+    marco.style.display === 'block' &&
+    !e.target.closest('.caja-texto') &&
+    !e.target.closest('.hotspot') &&
+    !e.target.closest('.cerrar-marco')
+  ) {
+    ocultarMarco();
+  }
+});
+
+function iniciarExperiencia() {
+  fadeInAudio(3000);
+  ejecutarIntros();
+}
+
+const btnES = document.getElementById('btn-es');
+const btnEN = document.getElementById('btn-en');
+const selectorIdioma = document.querySelector('.selector-idioma');
+
+
+btnES.addEventListener('click', () => {
+  idiomaActual = 'es';
+  selectorIdioma.classList.add('oculto');
+  iniciarExperiencia();
+});
+
+btnEN.addEventListener('click', () => {
+  idiomaActual = 'en';
+  selectorIdioma.classList.add('oculto');
+  iniciarExperiencia();
+});
+
+
+</script>
+
+</body>
+</html>
+
+
