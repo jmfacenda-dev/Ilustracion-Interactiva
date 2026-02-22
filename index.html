@@ -391,7 +391,33 @@ html, body {
   margin-right: 12px;
 }
 
+@media (orientation: landscape) {
 
+  html, body {
+    overflow: auto;
+  }
+
+  .contenedor {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .imagen-wrapper {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    margin: 40px auto;
+    text-align: center;
+  }
+
+  .imagen-wrapper img {
+    max-height: 85vh;
+    width: auto;
+  }
+
+}
 
 </style>
 </head>
