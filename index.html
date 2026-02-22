@@ -32,7 +32,7 @@ html, body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-}
+ }
 
 .imagen-wrapper img {
   display: block;
@@ -44,7 +44,7 @@ html, body {
 .contenedor {
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -391,6 +391,13 @@ html, body {
   margin-right: 12px;
 }
 
+@media (orientation: landscape) {
+
+  .imagen-wrapper img {
+    max-height: 90vh;
+  }
+
+}
 
 </style>
 </head>
