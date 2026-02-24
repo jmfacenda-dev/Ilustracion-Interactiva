@@ -376,6 +376,14 @@ html, body {
   gap: 35px;
   z-index: 20000;
   text-align: center;
+  white-space: nowrap;   /* 👈 CLAVE */
+}
+
+.texto-idioma {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
 }
 
 .flecha {
@@ -434,10 +442,14 @@ html, body {
 
 <div class="label-idioma">
   <span class="flecha izquierda">←</span>
-  Elige Idioma Choose Language
+
+  <div class="texto-idioma">
+    <div>Elige idioma</div>
+    <div>Choose language</div>
+  </div>
+
   <span class="flecha derecha">→</span>
 </div>
-
 
     <!-- hotspots -->
     <div class="hotspot s1" onclick="mostrarMarco()"></div>
