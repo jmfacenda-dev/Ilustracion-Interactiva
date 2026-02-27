@@ -142,19 +142,40 @@ html, body {
   display: none;
 }
 
-.cerrar-marco {
+/* =========================
+   BOTÓN SALIR
+   ========================= */
+
+.btn-salir {
   position: fixed;
-  top: 12px;
-  right: 12px;
-  background: rgba(0,0,0,0.7);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  font-size: 18px;
-  display: none;
-  z-index: 10;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  font-family: 'Gruppo', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+
+  color: rgba(255,255,255,0.85);
+  background: rgba(0,0,0,0.35);
+
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 12px;
+
+  padding: 6px 14px;
+
+  cursor: pointer;
+  z-index: 30000;
+
+  opacity: 0;
+  pointer-events: none;
+
+  transition: opacity 1s ease;
+}
+
+.btn-salir.visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* CAJA DE TEXTO SOBRE LA IMAGEN */
@@ -279,6 +300,11 @@ html, body {
   pointer-events: none;
 }
 
+#intro-animado {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
 /* =========================
    TEXTO PUNTILLISTA
    ========================= */
@@ -359,6 +385,27 @@ html, body {
 }
 
 /* =========================
+   BOTÓN AUDIO
+   ========================= */
+
+.btn-audio {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 42px;
+  height: 42px;
+  cursor: pointer;
+  z-index: 30000;
+  opacity: 0.85;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.btn-audio:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* =========================
    TEXTO IDIOMA ENTRE BANDERAS
    ========================= */
 
@@ -373,7 +420,7 @@ html, body {
   color: white;
   display: flex;
   align-items: center;
-  gap: 35px;
+  gap: 25px;
   z-index: 20000;
   text-align: center;
   white-space: nowrap;   /* 👈 CLAVE */
@@ -436,6 +483,7 @@ html, body {
 
   <div class="imagen-wrapper">
     <img src="ilustracion.jpg" alt="Ilustración">
+    <img src="speaker-on.png" id="btn-audio" class="btn-audio" alt="Audio">
 
 <img src="es.png" id="btn-es" class="bandera bandera-es" alt="Español">
 <img src="uk.png" id="btn-en" class="bandera bandera-en" alt="English">
@@ -471,17 +519,12 @@ html, body {
     <div class="hint oculto"></div>
 
 
-//<!-- Flecha símbolo 1 -->
-<!--
-<svg id="flecha-s1" class="flecha" viewBox="0 0 100 100" preserveAspectRatio="none">
-  <line x1="25" y1="78" x2="72" y2="42" />
-  <polygon points="72,39 80,42 72,45" />
-</svg>
--->//
   </div>
 
   <!-- UI fuera de la imagen -->
-  <button class="cerrar-marco" onclick="ocultarMarco()">✕</button>
+  <button class="btn-salir" id="btn-salir" onclick="cerrarPagina()">
+  Salir / Exit
+</button>
   <div class="caja-texto" id="caja-texto-1">
     <p id="texto-animado"></p>
   </div>
@@ -494,8 +537,16 @@ html, body {
 </div>
 <!-- ===== FIN INTROS ===== -->
 
-<audio id="audioIntro" src="nikitakondrashev-space-440026.mp3" preload="metadata" playsinline></audio>
+<audio id="audioIntro" src="nikitakondrashev-space-440026.mp3" preload="metadata" playsinline loop></audio>
+
 <audio id="audioClick" src="click.mp3" preload="auto" playsinline></audio>
+
+<audio id="audioS1" src="s1.wav" preload="auto"></audio>
+<audio id="audioS2" src="s2.wav" preload="auto"></audio>
+<audio id="audioS3" src="s3.wav" preload="auto"></audio>
+<audio id="audioS4" src="s4.wav" preload="auto"></audio>
+<audio id="audioS5" src="s5.wav" preload="auto"></audio>
+<audio id="audioS6" src="s6.wav" preload="auto"></audio>
 <script>
 
 /* =========================
@@ -518,24 +569,62 @@ const textosIntro = {
 let idiomaActual = 'es';
 const VELOCIDAD_INTRO = 110;
 const PAUSA_INTRO = 700;
+let introEscribiendo = false;
+let introCompleto = false;
+let introTimeoutCerrar = null;
+let introTextoActual = '';
+let introIndiceActual = 0;
+let introCallbackActual = null;
+let introCompletadoPorClick = false;
 
 function escribirIntro(texto, callback) {
+
   const el = document.getElementById('intro-animado');
+
+  introTextoActual = texto;
+  introIndiceActual = 0;
+  introCallbackActual = callback;
+
   el.textContent = '';
-  let i = 0;
+
+  introEscribiendo = true;
+  introCompleto = false;
 
   function escribir() {
-    if (i < texto.length) {
-      el.textContent += texto[i];
-      i++;
+
+    if (!introEscribiendo) return;
+
+    if (introIndiceActual < introTextoActual.length) {
+
+      el.textContent += introTextoActual[introIndiceActual];
+      introIndiceActual++;
+
       setTimeout(escribir, VELOCIDAD_INTRO);
+
     } else {
-      callback();
+
+      finalizarEscrituraIntro();
+
     }
   }
 
   escribir();
 }
+
+function finalizarEscrituraIntro() {
+
+  const el = document.getElementById('intro-animado');
+
+  introEscribiendo = false;
+  introCompleto = true;
+
+  el.textContent = introTextoActual;
+
+  if (introCallbackActual) {
+    introCallbackActual();
+  }
+}
+
 
 function mostrarIntro() {
   const intro = document.getElementById('intro');
@@ -557,7 +646,6 @@ function ocultarIntro(callback) {
 function ejecutarIntros(indice = 0) {
   if (indice >= textosIntro[idiomaActual].length) {
 
-fadeOutAudio(3000);  // 3 segundos de salida
 
     // 🔓 ACTIVAR HOTSPOTS
     document.querySelectorAll('.hotspot').forEach(h => {
@@ -569,6 +657,14 @@ fadeOutAudio(3000);  // 3 segundos de salida
 hint.textContent = idiomaActual === 'es' ? 'Toca un símbolo' : 'Touch a symbol';
 hint?.classList.remove('oculto');
 hint?.classList.add('activo');
+
+    // MOSTRAR BOTÓN SALIR CON FADE-IN
+    const btnSalir = document.getElementById('btn-salir');
+if (btnSalir && !btnSalir.classList.contains('visible')) {
+  setTimeout(() => {
+    btnSalir.classList.add('visible');
+  }, 600);
+}
     return;
   }
 
@@ -582,16 +678,65 @@ hint?.classList.add('activo');
 
   setTimeout(() => {
     escribirIntro(textosIntro[idiomaActual][indice], () => {
-      setTimeout(() => {
-        ocultarIntro(() => {
-          setTimeout(() => {
-            ejecutarIntros(indice + 1);
-          }, PAUSA_INTRO);
-        });
-      }, 1000);
+      let tiempoLectura = 1000;
+
+// añadir 15 segundos SOLO si es la primera intro y se completó por click
+if (indice === 0 && introCompletadoPorClick) {
+  tiempoLectura += 15000;
+}
+
+setTimeout(() => {
+  ocultarIntro(() => {
+    setTimeout(() => {
+      ejecutarIntros(indice + 1);
+    }, PAUSA_INTRO);
+  });
+
+  introCompletadoPorClick = false;
+
+}, tiempoLectura);
     });
   }, pausaFade);
 }
+
+// =========================
+// TAP SOBRE INTRO
+// =========================
+
+document.getElementById('intro-animado').addEventListener('pointerdown', (e) => {
+
+  e.stopPropagation();
+
+  // Si está escribiendo → completar instantáneamente
+ if (introEscribiendo) {
+
+  introCompletadoPorClick = true;
+  introEscribiendo = false;
+  finalizarEscrituraIntro();
+  return;
+
+}
+
+  // Si ya está completo → cerrar inmediatamente
+  if (introCompleto) {
+
+    introCompleto = false;
+
+    ocultarIntro(() => {
+
+      setTimeout(() => {
+        ejecutarIntros(
+          textosIntro[idiomaActual].indexOf(introTextoActual) + 1
+        );
+      }, PAUSA_INTRO);
+
+    });
+
+  }
+
+});
+
+  
 
 const textosSimbolos = {
   es: {
@@ -629,6 +774,37 @@ let popupActivo = false;
 const audio = document.getElementById('audioIntro');
 const audioClick = document.getElementById('audioClick');
 
+const btnAudio = document.getElementById('btn-audio');
+
+let audioSilenciado = false;
+let volumenOriginal = 0.35;
+
+if (btnAudio) {
+
+  btnAudio.addEventListener('click', () => {
+
+    if (!audioSilenciado) {
+
+      audioSilenciado = true;
+
+      audio.pause();   // ← CLAVE: parar realmente el audio
+      btnAudio.src = "speaker-off.png";
+
+    } else {
+
+      audioSilenciado = false;
+
+      audio.volume = volumenOriginal;
+      audio.play().catch(()=>{});
+
+      btnAudio.src = "speaker-on.png";
+
+    }
+
+  });
+
+}
+
 function sonidoClick() {
   if (!audioClick) return;
 
@@ -637,6 +813,18 @@ function sonidoClick() {
   audioClick.play().catch(() => {});
 }
 
+function reproducirSonido(id, volumen = 0.45) {
+
+  const audio = document.getElementById(id);
+
+  if (!audio) return;
+
+  audio.currentTime = 0;
+  audio.volume = volumen;
+
+  audio.play().catch(() => {});
+
+}
 function fadeInAudio(duration = 2000) {
 
   let step = 0.05;
@@ -734,7 +922,7 @@ function mostrarMarco() {
 
   if (popupActivo) return;
   popupActivo = true;
-  sonidoClick();
+  reproducirSonido("audioS1");
 
   // Mostrar marco y botón
 
@@ -744,19 +932,17 @@ if (hint) {
   hint.classList.remove('activo');
 }
   document.querySelector('.resaltado.s1').style.display = 'block';
-  document.querySelector('.cerrar-marco').style.display = 'block';
+  
 
   // Mostrar caja de texto
   const caja = document.getElementById('caja-texto-1');
   const texto = document.getElementById('texto-animado');
   caja.style.display = 'block';
-  texto.textContent = textosSimbolos[idiomaActual].s1;
-texto.classList.remove('visible');
+  
+texto.className = '';
+texto.textContent = textosSimbolos[idiomaActual].s1;
 texto.classList.add('texto-fade-in');
-
-// forzar reflow para que el fade funcione siempre
 void texto.offsetWidth;
-
 texto.classList.add('visible');
 
 
@@ -765,7 +951,7 @@ texto.classList.add('visible');
 clearTimeout(temporizadorPopup);
 temporizadorPopup = setTimeout(() => {
   ocultarMarco();
-}, 10000); // ← tiempo antes de cerrarse solo (ms)
+}, 15000); // ← tiempo antes de cerrarse solo (ms)
 
 
 }
@@ -774,7 +960,7 @@ function mostrarMarco2() {
 
   if (popupActivo) return;
   popupActivo = true;
-  sonidoClick();
+ reproducirSonido("audioS2");
   // Mostrar marco y botón
 
   const hint = document.querySelector('.hint');
@@ -784,62 +970,61 @@ if (hint) {
 }
 
   document.querySelector('.resaltado.s2').style.display = 'block';
-  document.querySelector('.cerrar-marco').style.display = 'block';
+  
 
   // Mostrar caja de texto
   const caja = document.getElementById('caja-texto-1');
   const texto = document.getElementById('texto-animado');
   caja.style.display = 'block';
-  texto.textContent = textosSimbolos[idiomaActual].s2;
-texto.classList.remove('visible');
+  texto.className = '';
+
+texto.textContent = textosSimbolos[idiomaActual].s2;
 texto.classList.add('texto-fade-in');
 void texto.offsetWidth;
 texto.classList.add('visible');
-
 
 // ⏱ cierre automático del popup
 clearTimeout(temporizadorPopup);
 temporizadorPopup = setTimeout(() => {
   ocultarMarco();
- }, 8000); // ← tiempo antes de cerrarse solo (ms)
+ }, 15000); // ← tiempo antes de cerrarse solo (ms)
 }
 
 function mostrarMarco3() {
 
   if (popupActivo) return;
   popupActivo = true;
-  sonidoClick();
+  reproducirSonido("audioS3");
  const hint = document.querySelector('.hint');
 if (hint) {
   hint.classList.add('oculto');
   hint.classList.remove('activo');
 }
   document.querySelector('.resaltado.s3').style.display = 'block';
-  document.querySelector('.cerrar-marco').style.display = 'block';
+  
 
 
   const caja = document.getElementById('caja-texto-1');
   const texto = document.getElementById('texto-animado');
 
   caja.style.display = 'block';
-  texto.textContent = textosSimbolos[idiomaActual].s3;
-
-  texto.classList.remove('visible');
-  texto.classList.add('texto-fade-in');
-  void texto.offsetWidth;
-  texto.classList.add('visible');
+  texto.className = '';
+texto.textContent = textosSimbolos[idiomaActual].s3;
+texto.classList.add('texto-fade-in');
+void texto.offsetWidth;
+texto.classList.add('visible');
 
   clearTimeout(temporizadorPopup);
   temporizadorPopup = setTimeout(() => {
     ocultarMarco();
-  }, 9000);
+  }, 15000);
 }
 
 function mostrarMarco4() {
 
   if (popupActivo) return;
   popupActivo = true;
-  sonidoClick();
+  reproducirSonido("audioS4");
  const hint = document.querySelector('.hint');
 if (hint) {
   hint.classList.add('oculto');
@@ -847,30 +1032,29 @@ if (hint) {
 }
 
   document.querySelector('.resaltado.s4').style.display = 'block';
-  document.querySelector('.cerrar-marco').style.display = 'block';
+  
 
   const caja = document.getElementById('caja-texto-1');
   const texto = document.getElementById('texto-animado');
 
   caja.style.display = 'block';
-  texto.textContent = textosSimbolos[idiomaActual].s4;
-
-  texto.classList.remove('visible');
-  texto.classList.add('texto-fade-in');
-  void texto.offsetWidth;
-  texto.classList.add('visible');
+  texto.className = '';
+texto.textContent = textosSimbolos[idiomaActual].s4;
+texto.classList.add('texto-fade-in');
+void texto.offsetWidth;
+texto.classList.add('visible');
 
   clearTimeout(temporizadorPopup);
   temporizadorPopup = setTimeout(() => {
     ocultarMarco();
-  }, 8000);   // ⏱ mismo tiempo que el 3
+  }, 15000);   // ⏱ mismo tiempo que el 3
 }
 
 function mostrarMarco5() {
 
   if (popupActivo) return;
   popupActivo = true;
-  sonidoClick();
+  reproducirSonido("audioS5");
   const hint = document.querySelector('.hint');
 if (hint) {
   hint.classList.add('oculto');
@@ -878,7 +1062,7 @@ if (hint) {
 }
 
   document.querySelector('.resaltado.s5').style.display = 'block';
-  document.querySelector('.cerrar-marco').style.display = 'block';
+  
 
   const caja = document.getElementById('caja-texto-1');
   const texto = document.getElementById('texto-animado');
@@ -886,24 +1070,23 @@ if (hint) {
   caja.classList.add('top');
 
   caja.style.display = 'block';
-  texto.textContent = textosSimbolos[idiomaActual].s5;
-
-  texto.classList.remove('visible');
-  texto.classList.add('texto-fade-in');
-  void texto.offsetWidth;
-  texto.classList.add('visible');
+  texto.className = '';
+texto.textContent = textosSimbolos[idiomaActual].s5;
+texto.classList.add('texto-fade-in');
+void texto.offsetWidth;
+texto.classList.add('visible');
 
   clearTimeout(temporizadorPopup);
   temporizadorPopup = setTimeout(() => {
     ocultarMarco();
-  }, 9000);
+  }, 15000);
 }
 
 function mostrarMarco6() {
 
   if (popupActivo) return;
   popupActivo = true;
-  sonidoClick();
+  reproducirSonido("audioS6");
   const hint = document.querySelector('.hint');
 if (hint) {
   hint.classList.add('oculto');
@@ -911,7 +1094,7 @@ if (hint) {
 }
 
   document.querySelector('.resaltado.s6').style.display = 'block';
-  document.querySelector('.cerrar-marco').style.display = 'block';
+  
 
   const caja = document.getElementById('caja-texto-1');
   const texto = document.getElementById('texto-animado');
@@ -920,17 +1103,16 @@ if (hint) {
 
 
   caja.style.display = 'block';
-  texto.textContent = textosSimbolos[idiomaActual].s6;
-
-  texto.classList.remove('visible');
-  texto.classList.add('texto-fade-in');
-  void texto.offsetWidth;
-  texto.classList.add('visible');
+ texto.className = '';
+texto.textContent = textosSimbolos[idiomaActual].s6;
+texto.classList.add('texto-fade-in');
+void texto.offsetWidth;
+texto.classList.add('visible');
 
   clearTimeout(temporizadorPopup);
   temporizadorPopup = setTimeout(() => {
     ocultarMarco();
-  }, 11000);
+  }, 15000);
 }
 
 function ocultarMarco() {
@@ -957,7 +1139,7 @@ setTimeout(() => {
     document.querySelector('.resaltado.s6').style.display = 'none';
 
 
-    document.querySelector('.cerrar-marco').style.display = 'none';
+    
     document.getElementById('caja-texto-1').style.display = 'none';
 
 
@@ -978,7 +1160,15 @@ if (hint) {
 
 }
 
+function cerrarPagina() {
 
+  // intentar cerrar pestaña
+  window.close();
+
+  // fallback para móviles y navegadores que no permiten cerrar
+  window.location.href = "about:blank";
+
+}
 
 
 
@@ -991,6 +1181,22 @@ let currentY = 0;
 let dragging = false;
 
 const cajaTexto = document.getElementById('caja-texto-1');
+
+const textoAnimadoPopup = document.getElementById('texto-animado');
+
+if (textoAnimadoPopup) {
+
+  textoAnimadoPopup.addEventListener('pointerdown', (e) => {
+
+    e.stopPropagation();
+
+    if (popupActivo) {
+      ocultarMarco();
+    }
+
+  });
+
+}
 
 if (cajaTexto) {
 
@@ -1025,21 +1231,6 @@ if (cajaTexto) {
   });
 
 }
-// Cerrar tocando fuera del panel (NO afecta al swipe ni a la X)
-document.addEventListener('pointerdown', (e) => {
-  const caja = document.getElementById('caja-texto-1');
-  const marco = document.querySelector('.resaltado.s1');
-
-  if (
-    marco &&
-    marco.style.display === 'block' &&
-    !e.target.closest('.caja-texto') &&
-    !e.target.closest('.hotspot') &&
-    !e.target.closest('.cerrar-marco')
-  ) {
-    ocultarMarco();
-  }
-});
 
 function iniciarExperiencia() {
 
@@ -1097,6 +1288,8 @@ window.addEventListener('load', () => {
   setTimeout(() => {
     window.scrollTo({ top: 1, behavior: "instant" });
   }, 500);
+
+
 });
 </script>
 
