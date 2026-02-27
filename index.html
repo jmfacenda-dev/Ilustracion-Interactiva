@@ -680,16 +680,26 @@ if (btnSalir && !btnSalir.classList.contains('visible')) {
     escribirIntro(textosIntro[idiomaActual][indice], () => {
       let tiempoLectura = 1000;
 
-// añadir 15 segundos SOLO si es la primera intro y se completó por click
-if (indice === 0 && introCompletadoPorClick) {
-  tiempoLectura += 15000;
+// añadir pausa extra si se completó por click
+if (introCompletadoPorClick) {
+
+  if (indice === 0) {
+    tiempoLectura += 15000;  // intro 1 → pausa larga existente
+  }
+
+  if (indice === 1) {
+    tiempoLectura += 6000;   // intro 2 → nueva pausa (ajustable)
+  }
+
 }
 
-setTimeout(() => {
+introTimeoutCerrar = setTimeout(() => {
   ocultarIntro(() => {
-    setTimeout(() => {
+
+    introTimeoutCerrar = setTimeout(() => {
       ejecutarIntros(indice + 1);
     }, PAUSA_INTRO);
+
   });
 
   introCompletadoPorClick = false;
@@ -717,22 +727,25 @@ document.getElementById('intro-animado').addEventListener('pointerdown', (e) => 
 
 }
 
-  // Si ya está completo → cerrar inmediatamente
-  if (introCompleto) {
+ // Si ya está completo → cerrar inmediatamente SIN lanzar ejecutarIntros otra vez
+if (introCompleto) {
 
-    introCompleto = false;
+  introCompleto = false;
 
-    ocultarIntro(() => {
+  // cancelar el timeout existente para evitar duplicados
+  clearTimeout(introTimeoutCerrar);
 
-      setTimeout(() => {
-        ejecutarIntros(
-          textosIntro[idiomaActual].indexOf(introTextoActual) + 1
-        );
-      }, PAUSA_INTRO);
+  ocultarIntro(() => {
 
-    });
+    setTimeout(() => {
+      ejecutarIntros(
+        textosIntro[idiomaActual].indexOf(introTextoActual) + 1
+      );
+    }, PAUSA_INTRO);
 
-  }
+  });
+
+}
 
 });
 
@@ -921,6 +934,7 @@ let intervalo;
 function mostrarMarco() {
 
   if (popupActivo) return;
+clearTimeout(introTimeoutCerrar);
   popupActivo = true;
   reproducirSonido("audioS1");
 
@@ -959,6 +973,7 @@ temporizadorPopup = setTimeout(() => {
 function mostrarMarco2() {
 
   if (popupActivo) return;
+clearTimeout(introTimeoutCerrar);
   popupActivo = true;
  reproducirSonido("audioS2");
   // Mostrar marco y botón
@@ -993,6 +1008,7 @@ temporizadorPopup = setTimeout(() => {
 function mostrarMarco3() {
 
   if (popupActivo) return;
+clearTimeout(introTimeoutCerrar);
   popupActivo = true;
   reproducirSonido("audioS3");
  const hint = document.querySelector('.hint');
@@ -1023,6 +1039,7 @@ texto.classList.add('visible');
 function mostrarMarco4() {
 
   if (popupActivo) return;
+clearTimeout(introTimeoutCerrar);
   popupActivo = true;
   reproducirSonido("audioS4");
  const hint = document.querySelector('.hint');
@@ -1053,6 +1070,7 @@ texto.classList.add('visible');
 function mostrarMarco5() {
 
   if (popupActivo) return;
+clearTimeout(introTimeoutCerrar);
   popupActivo = true;
   reproducirSonido("audioS5");
   const hint = document.querySelector('.hint');
@@ -1085,6 +1103,7 @@ texto.classList.add('visible');
 function mostrarMarco6() {
 
   if (popupActivo) return;
+clearTimeout(introTimeoutCerrar);
   popupActivo = true;
   reproducirSonido("audioS6");
   const hint = document.querySelector('.hint');
@@ -1117,7 +1136,7 @@ texto.classList.add('visible');
 
 function ocultarMarco() {
 clearTimeout(temporizadorPopup);
-popupActivo = false;
+
 
 
 
@@ -1155,6 +1174,8 @@ if (hint) {
   hint.classList.remove('oculto');
   hint.classList.add('activo');
 }
+
+popupActivo = false;
   });
 }, 50);
 
