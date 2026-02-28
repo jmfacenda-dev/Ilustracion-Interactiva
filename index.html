@@ -473,11 +473,38 @@ html, body {
 
 }
 
+.fade-out-global {
+  opacity: 0;
+  transition: opacity 1.8s ease;
+}
+
+#fade-radial {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99999;
+  opacity: 0;
+}
+
+#fade-radial.activo {
+  opacity: 1;
+}
+
+body {
+  opacity: 0;
+  transition: opacity 2.2s ease;
+}
+
+body.fade-in-activo {
+  opacity: 1;
+}
+
 </style>
 </head>
 
 <body>
 
+<div id="fade-radial"></div>
 <div class="contenedor">
 
 
@@ -913,7 +940,7 @@ function desvanecerPuntillista(elementoId, callback) {
       clearInterval(intervalo);
       if (callback) callback();
     }
-  }, 5);
+  }, 2);
 }
 
 function prepararTextoParaDesvanecer(elementoId) {
@@ -1183,14 +1210,65 @@ popupActivo = false;
 
 function cerrarPagina() {
 
-  // intentar cerrar pestaña
-  window.close();
+  const fade = document.getElementById('fade-radial');
+  const disco = document.querySelector('.imagen-wrapper');
 
-  // fallback para móviles y navegadores que no permiten cerrar
-  window.location.href = "about:blank";
+  if (!fade || !disco || fade.classList.contains('activo')) return;
+
+  // obtener centro real del disco
+  const rect = disco.getBoundingClientRect();
+
+  const centroX = rect.left + rect.width / 2;
+  const centroY = rect.top + rect.height / 2;
+
+  // convertir a porcentaje de pantalla
+  const x = (centroX / window.innerWidth) * 100;
+  const y = (centroY / window.innerHeight) * 100;
+
+  // estado inicial (agujero visible)
+  fade.style.background = `
+    radial-gradient(circle at ${x}% ${y}%,
+      rgba(0,0,0,0) 0%,
+      rgba(0,0,0,0) 10%,
+      rgba(0,0,0,1) 11%
+    )
+  `;
+
+  fade.classList.add('activo');
+
+  // animación manual suave
+  let radio = 10;
+
+  const anim = setInterval(() => {
+
+    radio += 0.9;
+
+    fade.style.background = `
+      radial-gradient(circle at ${x}% ${y}%,
+        rgba(0,0,0,1) 0%,
+        rgba(0,0,0,1) ${radio}%,
+        rgba(0,0,0,1) 100%
+      )
+    `;
+
+    if (radio >= 140) {
+      clearInterval(anim);
+    }
+
+  }, 28);
+
+  // fade audio sincronizado
+  fadeOutAudio(4200);
+  
+  // cerrar
+  setTimeout(() => {
+
+    window.close();
+    window.location.href = "about:blank";
+
+  }, 4200);
 
 }
-
 
 
 // =========================
@@ -1315,6 +1393,16 @@ window.addEventListener('load', () => {
 </script>
 
 <div style="height:1px;"></div>
+
+<script>
+window.addEventListener('load', () => {
+
+  requestAnimationFrame(() => {
+    document.body.classList.add('fade-in-activo');
+  });
+
+});
+</script>
 
 </body>
 </html>
